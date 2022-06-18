@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "serverutils",
+  "version": "${version}",
+
+  "name": "Server Utils",
+  "description": "Some server-side things I find useful.",
+  "authors": [
+    "mschae23"
+  ],
+  "contact": {
+  },
+
+  "license": "MIT License",
+  "icon": "assets/serverutils/icon.png",
+
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "de.martenschaefer.serverutils.ServerUtilsMod"
+    ]
+  },
+  "mixins": [
+    "serverutils.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.6",
+    "fabric": "*",
+    "minecraft": ">=1.19",
+    "java": ">=17",
+    "luckperms": "^5.4.0"
+  },
+  "suggests": {
+  }
+}
