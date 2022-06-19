@@ -14,7 +14,7 @@
   "license": "MIT License",
   "icon": "assets/serverutils/icon.png",
 
-  "environment": "server",
+  "environment": "*",
   "entrypoints": {
     "main": [
       "de.martenschaefer.serverutils.ServerUtilsMod"

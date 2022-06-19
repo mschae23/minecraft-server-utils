@@ -1,6 +1,8 @@
 package de.martenschaefer.serverutils;
 
+import java.util.Arrays;
 import java.util.Optional;
+import net.minecraft.command.CommandSource;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.text.Decoration;
 import net.minecraft.text.MutableText;
@@ -12,6 +14,7 @@ import net.minecraft.util.registry.RegistryKey;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import de.martenschaefer.serverutils.command.PosCommand;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -53,6 +56,20 @@ public class ServerUtilsMod implements ModInitializer {
         //noinspection CodeBlock2Expr
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             PosCommand.register(dispatcher);
+        });
+
+        // Check permissions on the server once, so they are registered and can be auto-completed
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            CommandSource source = server.getCommandSource();
+
+            String[] permissions = new String[] {
+                ".command.pos",
+                ".command.pos.public",
+                ".death.printcoords",
+                ".death.printcoords.public",
+            };
+
+            Arrays.stream(permissions).forEach(permission -> Permissions.check(source, MODID + permission));
         });
     }
 }

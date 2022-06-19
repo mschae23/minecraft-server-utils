@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "ServerPlayNetworkHandlerMixin",
-    "MinecraftServerMixin"
+    "MinecraftServerMixin",
+    "LivingEntityMixin",
+    "VillagerEntityMixin"
   ],
   "client": [
   ],
