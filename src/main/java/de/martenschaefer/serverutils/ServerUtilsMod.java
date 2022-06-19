@@ -40,7 +40,7 @@ public class ServerUtilsMod implements ModInitializer {
 
         // Death Coordinates
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            if (!Permissions.check(newPlayer, MODID + ".death.printcoords")) {
+            if (!Permissions.check(newPlayer, MODID + ".death.printcoords.enabled")) {
                 return;
             }
 
@@ -63,9 +63,9 @@ public class ServerUtilsMod implements ModInitializer {
             CommandSource source = server.getCommandSource();
 
             String[] permissions = new String[] {
-                ".command.pos",
+                ".command.pos.root",
                 ".command.pos.public",
-                ".death.printcoords",
+                ".death.printcoords.enabled",
                 ".death.printcoords.public",
             };
 

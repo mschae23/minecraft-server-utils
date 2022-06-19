@@ -15,8 +15,8 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 public class PosCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("pos")
-            .requires(Permissions.require(ServerUtilsMod.MODID + ".command.pos", true))
-                .requires(ServerCommandSource::isExecutedByPlayer) // /pos should be used by players, not the server console or command blocks
+            .requires(Permissions.require(ServerUtilsMod.MODID + ".command.pos.root", true)
+                .and(ServerCommandSource::isExecutedByPlayer)) // /pos should be used by players, not the server console or command blocks
             .executes(PosCommand::execute));
     }
 
