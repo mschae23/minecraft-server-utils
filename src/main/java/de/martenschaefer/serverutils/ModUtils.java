@@ -10,6 +10,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 
 public final class ModUtils {
     private ModUtils() {
@@ -36,5 +37,19 @@ public final class ModUtils {
         } else {
             player.sendMessage(text, MessageType.SYSTEM);
         }
+    }
+
+    public static Formatting getUsernameFormatting(@Nullable String colorName) {
+        Formatting usernameFormatting = Formatting.WHITE;
+
+        if (colorName != null) {
+            Formatting formatting = Formatting.byName(colorName);
+
+            if (formatting != null) {
+                usernameFormatting = formatting;
+            }
+        }
+
+        return usernameFormatting;
     }
 }

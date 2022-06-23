@@ -31,7 +31,7 @@ public class LuckPermsMessageDecorator implements MessageDecorator {
         String prefix = user.getCachedData().getMetaData().getPrefix();
         String suffix = user.getCachedData().getMetaData().getSuffix();
         String colorName = user.getCachedData().getMetaData().getMetaValue("username-color");
-        Formatting usernameFormatting = Formatting.WHITE;
+        Formatting usernameFormatting = ModUtils.getUsernameFormatting(colorName);
 
         if (prefix == null) {
             prefix = "";
@@ -39,14 +39,6 @@ public class LuckPermsMessageDecorator implements MessageDecorator {
 
         if (suffix == null) {
             suffix = "";
-        }
-
-        if (colorName != null) {
-            Formatting formatting = Formatting.byName(colorName);
-
-            if (formatting != null) {
-                usernameFormatting = formatting;
-            }
         }
 
         prefix = prefix.replaceAll("&([\\da-f])", "§$1");

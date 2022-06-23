@@ -6,6 +6,8 @@
   "mixins": [
     "ServerPlayNetworkHandlerMixin",
     "MinecraftServerMixin",
+    "ServerPlayerInteractionManagerMixin",
+    "ServerPlayerEntityMixin",
     "LivingEntityMixin",
     "VillagerEntityMixin"
   ],

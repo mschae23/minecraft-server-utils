@@ -13,9 +13,16 @@ import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public class PosCommand {
+    public static final String PERMISSION_ROOT = ".command.pos.root";
+
+    public static final String[] PERMISSIONS = new String[] {
+        PERMISSION_ROOT,
+        ".command.pos.public",
+    };
+
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("pos")
-            .requires(Permissions.require(ServerUtilsMod.MODID + ".command.pos.root", true)
+            .requires(Permissions.require(ServerUtilsMod.MODID + PERMISSION_ROOT, true)
                 .and(ServerCommandSource::isExecutedByPlayer)) // /pos should be used by players, not the server console or command blocks
             .executes(PosCommand::execute));
     }
@@ -25,7 +32,7 @@ public class PosCommand {
 
         BlockPos pos = new BlockPos(context.getSource().getPosition());
 
-        MutableText text = context.getSource().getDisplayName().copy().append(Text.literal(" is at ")
+        MutableText text = Text.empty().append(context.getSource().getDisplayName().copy()).append(Text.literal(" is at ")
             .append(ModUtils.getCoordinateText(pos)).append("."));
 
         if (inPublicChat) {

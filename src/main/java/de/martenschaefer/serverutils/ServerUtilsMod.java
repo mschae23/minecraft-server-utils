@@ -2,6 +2,7 @@ package de.martenschaefer.serverutils;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.text.Decoration;
@@ -46,8 +47,8 @@ public class ServerUtilsMod implements ModInitializer {
 
             boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public");
 
-            MutableText text = oldPlayer.getDisplayName().copy().append(Text.literal(" died at ")
-                .append(ModUtils.getCoordinateText(oldPlayer.getBlockPos())).append("."));
+            MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))
+                .append(ModUtils.getCoordinateText(oldPlayer.getBlockPos())).append(".");
 
             ModUtils.sendMessage(newPlayer, text, inPublicChat);
         });
@@ -58,18 +59,21 @@ public class ServerUtilsMod implements ModInitializer {
             PosCommand.register(dispatcher);
         });
 
-        // Check permissions on the server once, so they are registered and can be auto-completed
+        // Check permissions on the server once, so that they are registered and can be auto-completed
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             CommandSource source = server.getCommandSource();
 
+            Stream<String> commandPermissions = Arrays.stream(new String[][] {
+                PosCommand.PERMISSIONS,
+            }).flatMap(Arrays::stream);
+
             String[] permissions = new String[] {
-                ".command.pos.root",
-                ".command.pos.public",
                 ".death.printcoords.enabled",
                 ".death.printcoords.public",
             };
 
-            Arrays.stream(permissions).forEach(permission -> Permissions.check(source, MODID + permission));
+            Stream.concat(commandPermissions, Arrays.stream(permissions))
+                .forEach(permission -> Permissions.check(source, MODID + permission));
         });
     }
 }
