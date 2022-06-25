@@ -7,6 +7,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,8 +24,7 @@ public abstract class LivingEntityMixin extends Entity {
         LivingEntity entity = (LivingEntity) entityObject;
         MinecraftServer server = entity.getServer();
 
-        if (server == null) {
-            // Unreachable, because the if statement surrounding the redirected statement checks for !isClient
+        if (!ServerUtilsMod.getConfig().broadcastEntityDeath().enabled() || server == null) {
             logger.info(logText, entityObject, deathMessage);
             return;
         }

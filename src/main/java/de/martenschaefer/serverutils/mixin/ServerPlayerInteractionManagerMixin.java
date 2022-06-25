@@ -3,6 +3,7 @@ package de.martenschaefer.serverutils.mixin;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -36,7 +37,7 @@ public class ServerPlayerInteractionManagerMixin {
 
     @Inject(method = "update", at = @At("RETURN"))
     private void onUpdate(CallbackInfo ci) {
-        if (this.serverutils_ticksSinceUpdate++ >= 100) {
+        if (ServerUtilsMod.getConfig().chat().enabled() && this.serverutils_ticksSinceUpdate++ >= 100) {
             User user = getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(this.player);
             String colorName = user.getCachedData().getMetaData().getMetaValue("username-color");
 

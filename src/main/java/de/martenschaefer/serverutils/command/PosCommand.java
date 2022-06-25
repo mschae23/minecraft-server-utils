@@ -28,7 +28,8 @@ public class PosCommand {
     }
 
     private static int execute(CommandContext<ServerCommandSource> context) {
-        boolean inPublicChat = Permissions.check(context.getSource(), ServerUtilsMod.MODID + ".command.pos.public");
+        boolean inPublicChat = Permissions.check(context.getSource(), ServerUtilsMod.MODID + ".command.pos.public",
+            ServerUtilsMod.getConfig().command().pos().inPublicChat());
 
         BlockPos pos = new BlockPos(context.getSource().getPosition());
 

@@ -9,7 +9,8 @@
     "ServerPlayerInteractionManagerMixin",
     "ServerPlayerEntityMixin",
     "LivingEntityMixin",
-    "VillagerEntityMixin"
+    "VillagerEntityMixin",
+    "LockableContainerBlockEntityMixin"
   ],
   "client": [
   ],

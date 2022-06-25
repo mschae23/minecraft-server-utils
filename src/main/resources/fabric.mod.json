@@ -23,6 +23,7 @@
   "mixins": [
     "serverutils.mixins.json"
   ],
+  "accessWidener": "serverutils.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.14.6",

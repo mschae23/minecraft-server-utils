@@ -5,6 +5,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import de.martenschaefer.serverutils.ModUtils;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -21,6 +22,10 @@ public class ServerPlayerEntityMixin {
 
     @Inject(method = "getPlayerListName", at = @At("RETURN"), cancellable = true)
     private void onGetPlayerListName(CallbackInfoReturnable<Text> cir) {
+        if (!ServerUtilsMod.getConfig().chat().enabled()) {
+            return;
+        }
+
         Text original = cir.getReturnValue();
         MutableText name = null;
 

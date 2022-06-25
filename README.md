@@ -7,9 +7,11 @@ Requires LuckPerms.
 
 ### Commands
 - `serverutils.command.pos.root`: Permission for /pos command (defaults to `true`).
-- `serverutils.command.pos.public`: Whether the coordinates should be shown in public chat when using /pos.
+- `serverutils.command.pos.public`: Overrides the `command.pos.in_public_chat` config property
+(if this is enabled, the player's coordinates will be shown to all players instead of just the one who used /pos).
 
 ### Other
-- `serverutils.death.printcoords.enabled`: When a player dies, their coordinates will be shown in chat if this is enabled.
-- `serverutils.death.printcoords.public`: If this is enabled, the player's coordinates will be sent to all players
-instead of just the one who died.
+- `serverutils.death.printcoords.enabled`: When a player dies, their coordinates will be shown in chat if this and the corresponding config option are enabled.
+- `serverutils.death.printcoords.public`: Overrides the `death_coords.in_public_chat` config property
+(if this is enabled, the player's coordinates will be sent to all players instead of just the one who died).
+- `serverutils.key...`: Default prefix for permissions to open containers that are locked.
