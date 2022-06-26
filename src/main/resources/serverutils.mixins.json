@@ -10,7 +10,11 @@
     "ServerPlayerEntityMixin",
     "LivingEntityMixin",
     "VillagerEntityMixin",
-    "LockableContainerBlockEntityMixin"
+    "lock.LockableContainerBlockEntityMixin",
+    "lock.ContainerLockMixin",
+    "lock.ExplosionBehaviorMixin",
+    "lock.EntityExplosionBehaviorMixin",
+    "lock.ServerWorldMixin"
   ],
   "client": [
   ],

@@ -18,6 +18,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayerInteractionManager.class)
 public class ServerPlayerInteractionManagerMixin {
+    @Shadow
+    private int tickCounter;
+
+    @Shadow
+    @Final
+    protected ServerPlayerEntity player;
+
     @Unique
     private static LuckPerms serverutils_luckPerms = null;
 
@@ -27,13 +34,6 @@ public class ServerPlayerInteractionManagerMixin {
     @Unique
     @Nullable
     private String serverutils_lastColorName = null;
-
-    @Shadow
-    private int tickCounter;
-
-    @Shadow
-    @Final
-    protected ServerPlayerEntity player;
 
     @Inject(method = "update", at = @At("RETURN"))
     private void onUpdate(CallbackInfo ci) {

@@ -1,5 +1,7 @@
 package de.martenschaefer.serverutils;
 
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.ContainerLock;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,11 +12,16 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import de.martenschaefer.serverutils.config.ContainerLockConfig;
+import de.martenschaefer.serverutils.holder.LockPermissionHolder;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import org.jetbrains.annotations.Nullable;
 
 public final class ModUtils {
     private ModUtils() {
     }
+
+    // Chat
 
     public static MutableText getCoordinateText(BlockPos pos) {
         return Texts.bracketed(Text.translatable("chat.coordinates", pos.getX(), pos.getY(), pos.getZ()))
@@ -51,5 +58,32 @@ public final class ModUtils {
         }
 
         return usernameFormatting;
+    }
+
+    // Container Lock
+
+    public static boolean canAlwaysOpen(ContainerLock lock) {
+        return lock.key.isEmpty() && ((LockPermissionHolder) lock).getLockPermission().isEmpty();
+    }
+
+    public static String getLockPermission(ContainerLockConfig config, LockPermissionHolder lock) {
+        String permission = lock.getLockPermission();
+
+        if (!config.permissionPrefix().isEmpty()) {
+            permission = config.permissionPrefix() + "." + permission;
+        }
+
+        permission = ServerUtilsMod.MODID + "." + permission;
+        return permission;
+    }
+
+    public static boolean checkLockPermission(ContainerLockConfig config, PlayerEntity player, ContainerLock lock) {
+        LockPermissionHolder lockPermission = (LockPermissionHolder) lock;
+
+        if (lockPermission.getLockPermission().isEmpty()) {
+            return lock.canOpen(player.getMainHandStack());
+        } else {
+            return Permissions.check(player, getLockPermission(config, lockPermission)) && lock.canOpen(player.getMainHandStack());
+        }
     }
 }

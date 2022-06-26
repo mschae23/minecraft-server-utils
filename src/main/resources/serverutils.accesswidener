@@ -1,2 +1,3 @@
 accessWidener	v1	named
 accessible	field	net/minecraft/inventory/ContainerLock	key	Ljava/lang/String;
+accessible	field	net/minecraft/block/entity/LockableContainerBlockEntity	lock	Lnet/minecraft/inventory/ContainerLock;

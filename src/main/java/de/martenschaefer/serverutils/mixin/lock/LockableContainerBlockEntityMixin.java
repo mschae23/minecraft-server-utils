@@ -1,4 +1,4 @@
-package de.martenschaefer.serverutils.mixin;
+package de.martenschaefer.serverutils.mixin.lock;
 
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -7,7 +7,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
+import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
+import de.martenschaefer.serverutils.holder.LockPermissionHolder;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
@@ -26,26 +28,17 @@ public class LockableContainerBlockEntityMixin {
     private static boolean redirectCanOpen(ContainerLock lock, ItemStack stack, PlayerEntity player, ContainerLock lock2, Text containerName) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
 
-        if (!config.enabled() || lock.key.isEmpty()) {
-            return true;
-        }
+        LockPermissionHolder lockPermission = (LockPermissionHolder) lock;
 
         World world = player.getWorld();
         MinecraftServer server = world.getServer();
 
-        if (world.isClient || server == null) {
+        if (!config.enabled() || lockPermission.getLockPermission().isEmpty() || world.isClient || server == null) {
             return lock.canOpen(stack);
         }
 
-        String permission = lock.key;
-
-        if (!config.permissionPrefix().isEmpty()) {
-            permission = config.permissionPrefix() + "." + lock.key;
-        }
-
-        permission = ServerUtilsMod.MODID + "." + permission;
-
-        return Permissions.check(player, permission);
+        String permission = ModUtils.getLockPermission(config, lockPermission);
+        return Permissions.check(player, permission) && lock.canOpen(stack);
     }
 
     @Unique
