@@ -27,7 +27,7 @@ public class ServerPlayerEntityMixin {
         }
 
         Text original = cir.getReturnValue();
-        MutableText name = null;
+        MutableText name;
 
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) (this);
 

@@ -1,4 +1,4 @@
-package de.martenschaefer.serverutils;
+package de.martenschaefer.serverutils.chat;
 
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.network.message.MessageDecorator;
@@ -9,11 +9,12 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import org.jetbrains.annotations.Nullable;
+import de.martenschaefer.serverutils.ModUtils;
 
 public class LuckPermsMessageDecorator implements MessageDecorator {
     private LuckPerms api;
 
-    LuckPermsMessageDecorator() {
+    public LuckPermsMessageDecorator() {
         this.api = null;
     }
 

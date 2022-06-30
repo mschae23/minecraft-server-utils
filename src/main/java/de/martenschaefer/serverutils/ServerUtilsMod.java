@@ -26,6 +26,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import net.fabricmc.loader.api.FabricLoader;
+import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.PosCommand;
 import de.martenschaefer.serverutils.config.ConfigUtils;
 import de.martenschaefer.serverutils.config.ServerUtilsConfig;
@@ -47,9 +48,7 @@ public class ServerUtilsMod implements ModInitializer {
         initializeConfig();
 
         BuiltinRegistries.add(BuiltinRegistries.MESSAGE_TYPE, ServerUtilsMod.UNDECORATED_CHAT,
-            new MessageType(Optional.of(MessageType.DisplayRule.of()), Optional.empty(),
-                Optional.of(MessageType.NarrationRule.of(Decoration.ofChat("chat.type.text.narrate"),
-                    MessageType.NarrationRule.Kind.CHAT))));
+            new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("chat.type.text.narrate")));
 
         ServerUtilsConfig config = getConfig();
 

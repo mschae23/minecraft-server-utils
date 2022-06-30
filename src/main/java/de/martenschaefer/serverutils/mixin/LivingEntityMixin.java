@@ -29,6 +29,6 @@ public abstract class LivingEntityMixin extends Entity {
             return;
         }
 
-        server.getPlayerManager().broadcast(source.getDeathMessage(entity), MessageType.SYSTEM);
+        server.getPlayerManager().broadcast(source.getDeathMessage(entity), false);
     }
 }

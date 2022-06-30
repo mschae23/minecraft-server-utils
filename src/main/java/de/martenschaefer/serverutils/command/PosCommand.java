@@ -37,7 +37,7 @@ public class PosCommand {
             .append(ModUtils.getCoordinateText(pos)).append("."));
 
         if (inPublicChat) {
-            context.getSource().getServer().getPlayerManager().broadcast(text, MessageType.SYSTEM);
+            context.getSource().getServer().getPlayerManager().broadcast(text, false);
         } else {
             context.getSource().sendFeedback(text, false);
         }

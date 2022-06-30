@@ -31,7 +31,7 @@ public abstract class VillagerEntityMixin extends Entity {
             return;
         }
 
-        server.getPlayerManager().broadcast(entity.getDamageTracker().getDeathMessage(), MessageType.SYSTEM);
+        server.getPlayerManager().broadcast(entity.getDamageTracker().getDeathMessage(), false);
     }
 
     @Redirect(method = "onStruckByLightning", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V"))
@@ -45,6 +45,6 @@ public abstract class VillagerEntityMixin extends Entity {
         VillagerEntity entity = (VillagerEntity) (Object) this;
 
         world.getServer().getPlayerManager().broadcast(
-            Text.translatable("death.attack.lightningBolt", entity.getDisplayName()), MessageType.SYSTEM);
+            Text.translatable("death.attack.lightningBolt", entity.getDisplayName()), false);
     }
 }

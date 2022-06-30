@@ -36,13 +36,13 @@ public final class ModUtils {
 
             if (server == null) {
                 // This can't actually happen, since this is on a server.
-                player.sendMessage(text, MessageType.SYSTEM);
+                player.sendMessage(text, false);
                 return;
             }
 
-            server.getPlayerManager().broadcast(text, MessageType.SYSTEM);
+            server.getPlayerManager().broadcast(text, false);
         } else {
-            player.sendMessage(text, MessageType.SYSTEM);
+            player.sendMessage(text, false);
         }
     }
 
