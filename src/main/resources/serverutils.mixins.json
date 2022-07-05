@@ -4,15 +4,16 @@
   "package": "de.martenschaefer.serverutils.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ServerPlayNetworkHandlerMixin",
-    "ServerPlayerInteractionManagerMixin",
-    "ServerPlayerEntityMixin",
     "LivingEntityMixin",
+    "ServerPlayerEntityMixin",
+    "ServerPlayerInteractionManagerMixin",
+    "ServerPlayNetworkHandlerMixin",
     "VillagerEntityMixin",
-    "lock.LockableContainerBlockEntityMixin",
+    "PlayerManagerMixin",
     "lock.ContainerLockMixin",
+    "lock.EntityExplosionBehaviorMixin",
     "lock.ExplosionBehaviorMixin",
-    "lock.EntityExplosionBehaviorMixin"
+    "lock.LockableContainerBlockEntityMixin"
   ],
   "client": [
   ],

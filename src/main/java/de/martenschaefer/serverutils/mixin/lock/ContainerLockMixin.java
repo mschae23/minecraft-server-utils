@@ -45,7 +45,7 @@ public class ContainerLockMixin implements LockPermissionHolder {
         }
 
         ContainerLock modified = new ContainerLock(original.key);
-        ((ContainerLockMixin) (Object) modified).serverutils_permission = nbt.getString(config.dataKey());
+        ((ContainerLockMixin) (Object) modified).serverutils_permission = permission;
         cir.setReturnValue(modified);
     }
 
