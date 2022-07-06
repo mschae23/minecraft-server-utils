@@ -1,6 +1,5 @@
 package de.martenschaefer.serverutils.command;
 
-import net.minecraft.network.message.MessageType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;

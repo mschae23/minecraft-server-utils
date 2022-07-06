@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
 import net.minecraft.network.message.MessageType;
@@ -18,6 +17,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
+import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.fabricmc.api.ModInitializer;
@@ -28,8 +28,9 @@ import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import net.fabricmc.loader.api.FabricLoader;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.PosCommand;
-import de.martenschaefer.serverutils.config.ConfigUtils;
-import de.martenschaefer.serverutils.config.ServerUtilsConfig;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV2;
+import de.martenschaefer.serverutils.config.impl.ConfigUtils;
+import de.martenschaefer.serverutils.config.impl.ModConfig;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +40,20 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static ServerUtilsConfig CONFIG = ServerUtilsConfig.DEFAULT;
+    private static ServerUtilsConfigV2 CONFIG = ModConfig.LATEST_DEFAULT.latest();
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(Registry.MESSAGE_TYPE_KEY, new Identifier(MODID, "undecorated_chat"));
 
     @Override
     public void onInitialize() {
-        initializeConfig();
+        ServerLifecycleEvents.SERVER_STARTING.register(server ->
+            initializeConfig(server.getRegistryManager())
+        );
 
         BuiltinRegistries.add(BuiltinRegistries.MESSAGE_TYPE, ServerUtilsMod.UNDECORATED_CHAT,
             new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("chat.type.text.narrate")));
 
-        ServerUtilsConfig config = getConfig();
+        var config = getConfig();
 
         if (config.chat().enabled()) {
             // Message Decorator for prefixes, suffixes and username colors
@@ -60,7 +63,7 @@ public class ServerUtilsMod implements ModInitializer {
         if (config.deathCoords().enabled()) {
             // Death Coordinates
             ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-                if (!Permissions.check(newPlayer, MODID + ".death.printcoords.enabled")) {
+                if (!Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", true)) {
                     return;
                 }
 
@@ -97,14 +100,28 @@ public class ServerUtilsMod implements ModInitializer {
         });
     }
 
-    private static void initializeConfig() {
+    private static void initializeConfig(DynamicRegistryManager manager) {
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(ConfigUtils.CONFIG_PATH);
 
         if (Files.exists(configPath) && Files.isRegularFile(configPath)) {
             try (InputStream input = Files.newInputStream(configPath)) {
                 LOGGER.info("Reading config.");
 
-                CONFIG = ConfigUtils.decodeConfig(input);
+                ModConfig config = ConfigUtils.decodeConfig(input, manager);
+                CONFIG = config.latest();
+
+                if (config.shouldUpdate() && config.version() < ModConfig.LATEST_VERSION) {
+                    try (OutputStream output = Files.newOutputStream(configPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+                         OutputStreamWriter writer = new OutputStreamWriter(new BufferedOutputStream(output))) {
+                        LOGGER.info("Writing updated config.");
+
+                        ConfigUtils.encodeConfig(writer, config.latest(), manager);
+                    } catch (IOException e) {
+                        LOGGER.error("IO exception while trying to write updated config: " + e.getLocalizedMessage());
+                    } catch (RuntimeException e) {
+                        LOGGER.error(e.getLocalizedMessage());
+                    }
+                }
             } catch (IOException e) {
                 LOGGER.error("IO exception while trying to read config: " + e.getLocalizedMessage());
             } catch (RuntimeException e) {
@@ -115,7 +132,7 @@ public class ServerUtilsMod implements ModInitializer {
                  OutputStreamWriter writer = new OutputStreamWriter(new BufferedOutputStream(output))) {
                 LOGGER.info("Writing default config.");
 
-                ConfigUtils.encodeConfig(writer);
+                ConfigUtils.encodeConfig(writer, ModConfig.LATEST_DEFAULT, manager);
             } catch (IOException e) {
                 LOGGER.error("IO exception while trying to write config: " + e.getLocalizedMessage());
             } catch (RuntimeException e) {
@@ -124,7 +141,7 @@ public class ServerUtilsMod implements ModInitializer {
         }
     }
 
-    public static ServerUtilsConfig getConfig() {
+    public static ServerUtilsConfigV2 getConfig() {
         return CONFIG;
     }
 

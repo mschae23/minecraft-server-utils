@@ -1,15 +1,7 @@
 package de.martenschaefer.serverutils.mixin;
 
-import net.minecraft.network.message.MessageSender;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Util;
-import de.martenschaefer.serverutils.ServerUtilsMod;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin {

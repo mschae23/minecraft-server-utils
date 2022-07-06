@@ -5,11 +5,11 @@ import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import de.martenschaefer.serverutils.ModUtils;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import org.jetbrains.annotations.Nullable;
-import de.martenschaefer.serverutils.ModUtils;
 
 public class LuckPermsMessageDecorator implements MessageDecorator {
     private LuckPerms api;

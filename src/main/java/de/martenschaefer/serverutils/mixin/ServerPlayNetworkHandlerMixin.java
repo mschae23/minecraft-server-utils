@@ -10,7 +10,6 @@ import net.minecraft.util.registry.RegistryKey;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerPlayNetworkHandler.class)
