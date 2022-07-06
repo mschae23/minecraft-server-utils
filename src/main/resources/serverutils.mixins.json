@@ -5,15 +5,16 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "LivingEntityMixin",
+    "PlayerManagerMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayerInteractionManagerMixin",
     "ServerPlayNetworkHandlerMixin",
     "VillagerEntityMixin",
-    "PlayerManagerMixin",
     "lock.ContainerLockMixin",
     "lock.EntityExplosionBehaviorMixin",
     "lock.ExplosionBehaviorMixin",
-    "lock.LockableContainerBlockEntityMixin"
+    "lock.LockableContainerBlockEntityMixin",
+    "lock.HopperBlockEntityMixin"
   ],
   "client": [
   ],

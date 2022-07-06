@@ -29,6 +29,11 @@ public class ContainerLockMixin implements LockPermissionHolder {
         return this.serverutils_permission;
     }
 
+    @Override
+    public void setLockPermission(String permission) {
+        this.serverutils_permission = permission;
+    }
+
     @Inject(method = "fromNbt", at = @At("RETURN"), cancellable = true)
     private static void onFromNbt(NbtCompound nbt, CallbackInfoReturnable<ContainerLock> cir) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();

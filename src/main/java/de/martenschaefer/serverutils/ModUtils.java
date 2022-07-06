@@ -29,6 +29,10 @@ public final class ModUtils {
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("chat.coordinates.tooltip"))));
     }
 
+    public static MutableText getCoordinateTextUnstyled(BlockPos pos) {
+        return Texts.bracketed(Text.translatable("chat.coordinates", pos.getX(), pos.getY(), pos.getZ()));
+    }
+
     public static void sendMessage(ServerPlayerEntity player, Text text, boolean inPublicChat) {
         if (inPublicChat) {
             MinecraftServer server = player.getServer();

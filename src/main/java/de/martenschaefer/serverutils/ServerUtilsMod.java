@@ -27,7 +27,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import net.fabricmc.loader.api.FabricLoader;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
+import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
+import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.impl.ConfigUtils;
 import de.martenschaefer.serverutils.config.impl.ModConfig;
@@ -77,9 +79,10 @@ public class ServerUtilsMod implements ModInitializer {
         }
 
         // Command registration
-        //noinspection CodeBlock2Expr
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             PosCommand.register(dispatcher);
+            LockCommand.register(dispatcher);
+            UnlockCommand.register(dispatcher);
         });
 
         // Check permissions on the server once, so that they are registered and can be auto-completed
@@ -88,6 +91,8 @@ public class ServerUtilsMod implements ModInitializer {
 
             Stream<String> commandPermissions = Arrays.stream(new String[][] {
                 PosCommand.PERMISSIONS,
+                LockCommand.PERMISSIONS,
+                UnlockCommand.PERMISSIONS,
             }).flatMap(Arrays::stream);
 
             String[] permissions = new String[] {
