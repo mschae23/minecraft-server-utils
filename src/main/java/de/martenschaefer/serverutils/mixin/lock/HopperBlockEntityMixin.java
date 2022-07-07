@@ -8,8 +8,6 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Direction;
 import de.martenschaefer.serverutils.ModUtils;
-import de.martenschaefer.serverutils.ServerUtilsMod;
-import de.martenschaefer.serverutils.holder.LockPermissionHolder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
