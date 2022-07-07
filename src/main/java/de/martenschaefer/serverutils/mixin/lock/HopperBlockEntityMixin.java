@@ -37,8 +37,6 @@ public class HopperBlockEntityMixin {
 
     @Inject(method = "canExtract", at = @At("RETURN"), cancellable = true)
     private static void onCanExtract(Inventory inv, ItemStack stack, int slot, Direction facing, CallbackInfoReturnable<Boolean> cir) {
-        ServerUtilsMod.LOGGER.info("on canExtract");
-
         boolean isLocked;
 
         if (inv instanceof DoubleInventory doubleInventory) {
@@ -48,7 +46,6 @@ public class HopperBlockEntityMixin {
         }
 
         if (isLocked) {
-            ServerUtilsMod.LOGGER.info("on canExtract, locked");
             cir.setReturnValue(false);
         }
     }
