@@ -1,13 +1,6 @@
 package de.martenschaefer.serverutils;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
@@ -16,8 +9,8 @@ import net.minecraft.text.Decoration;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.dynamic.RegistryOps;
 import net.minecraft.util.registry.BuiltinRegistries;
-import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.fabricmc.api.ModInitializer;
@@ -25,14 +18,16 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
-import net.fabricmc.loader.api.FabricLoader;
+import de.martenschaefer.config.api.ConfigIo;
+import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV2;
-import de.martenschaefer.serverutils.config.impl.ConfigUtils;
-import de.martenschaefer.serverutils.config.impl.ModConfig;
+import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +37,19 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static ServerUtilsConfigV2 CONFIG = ModConfig.LATEST_DEFAULT.latest();
+    private static final int LATEST_CONFIG_VERSION = 2;
+    private static final ServerUtilsConfigV2 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV2.DEFAULT;
+    private static final Codec<ModConfig<ServerUtilsConfigV2>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+
+    private static ServerUtilsConfigV2 CONFIG = LATEST_CONFIG_DEFAULT;
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(Registry.MESSAGE_TYPE_KEY, new Identifier(MODID, "undecorated_chat"));
 
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTING.register(server ->
-            initializeConfig(server.getRegistryManager())
+            CONFIG = ConfigIo.initializeConfig(Paths.get(MODID + ".json"), LATEST_CONFIG_DEFAULT, CONFIG_CODEC,
+                RegistryOps.of(JsonOps.INSTANCE, server.getRegistryManager()), LOGGER::info, LOGGER::error)
         );
 
         BuiltinRegistries.add(BuiltinRegistries.MESSAGE_TYPE, ServerUtilsMod.UNDECORATED_CHAT,
@@ -105,45 +105,13 @@ public class ServerUtilsMod implements ModInitializer {
         });
     }
 
-    private static void initializeConfig(DynamicRegistryManager manager) {
-        Path configPath = FabricLoader.getInstance().getConfigDir().resolve(ConfigUtils.CONFIG_PATH);
-
-        if (Files.exists(configPath) && Files.isRegularFile(configPath)) {
-            try (InputStream input = Files.newInputStream(configPath)) {
-                LOGGER.info("Reading config.");
-
-                ModConfig config = ConfigUtils.decodeConfig(input, manager);
-                CONFIG = config.latest();
-
-                if (config.shouldUpdate() && config.version() < ModConfig.LATEST_VERSION) {
-                    try (OutputStream output = Files.newOutputStream(configPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                         OutputStreamWriter writer = new OutputStreamWriter(new BufferedOutputStream(output))) {
-                        LOGGER.info("Writing updated config.");
-
-                        ConfigUtils.encodeConfig(writer, config.latest(), manager);
-                    } catch (IOException e) {
-                        LOGGER.error("IO exception while trying to write updated config: " + e.getLocalizedMessage());
-                    } catch (RuntimeException e) {
-                        LOGGER.error(e.getLocalizedMessage());
-                    }
-                }
-            } catch (IOException e) {
-                LOGGER.error("IO exception while trying to read config: " + e.getLocalizedMessage());
-            } catch (RuntimeException e) {
-                LOGGER.error(e.getLocalizedMessage());
-            }
-        } else {
-            try (OutputStream output = Files.newOutputStream(configPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
-                 OutputStreamWriter writer = new OutputStreamWriter(new BufferedOutputStream(output))) {
-                LOGGER.info("Writing default config.");
-
-                ConfigUtils.encodeConfig(writer, ModConfig.LATEST_DEFAULT, manager);
-            } catch (IOException e) {
-                LOGGER.error("IO exception while trying to write config: " + e.getLocalizedMessage());
-            } catch (RuntimeException e) {
-                LOGGER.error(e.getLocalizedMessage());
-            }
-        }
+    @SuppressWarnings("deprecation")
+    private static ModConfig.Type<ServerUtilsConfigV2, ?> getConfigType(int version) {
+        //noinspection SwitchStatementWithTooFewBranches
+        return new ModConfig.Type<>(version, switch (version) {
+            case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
+            default -> ServerUtilsConfigV2.TYPE_CODEC;
+        });
     }
 
     public static ServerUtilsConfigV2 getConfig() {

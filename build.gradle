@@ -12,8 +12,9 @@ version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
 repositories {
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    mavenLocal()
 
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     mavenCentral()
 }
 
@@ -23,6 +24,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "de.martenschaefer:codec-config-api:${project.codec_config_api_version}"
     modImplementation "net.luckperms:api:${project.luckperms_api_version}"
     modImplementation "me.lucko:fabric-permissions-api:${project.permission_api_version}"
 }
