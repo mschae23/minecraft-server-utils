@@ -37,8 +37,8 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static final int LATEST_CONFIG_VERSION = 2;
     private static final ServerUtilsConfigV2 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV2.DEFAULT;
+    private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
     private static final Codec<ModConfig<ServerUtilsConfigV2>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
 
     private static ServerUtilsConfigV2 CONFIG = LATEST_CONFIG_DEFAULT;
@@ -48,7 +48,7 @@ public class ServerUtilsMod implements ModInitializer {
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTING.register(server ->
-            CONFIG = ConfigIo.initializeConfig(Paths.get(MODID + ".json"), LATEST_CONFIG_DEFAULT, CONFIG_CODEC,
+            CONFIG = ConfigIo.initializeConfig(Paths.get(MODID + ".json"), LATEST_CONFIG_VERSION, LATEST_CONFIG_DEFAULT, CONFIG_CODEC,
                 RegistryOps.of(JsonOps.INSTANCE, server.getRegistryManager()), LOGGER::info, LOGGER::error)
         );
 
