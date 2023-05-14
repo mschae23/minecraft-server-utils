@@ -34,13 +34,13 @@ public class HopperBlockEntityMixin {
     */
 
     @Inject(method = "canExtract", at = @At("RETURN"), cancellable = true)
-    private static void onCanExtract(Inventory inv, ItemStack stack, int slot, Direction facing, CallbackInfoReturnable<Boolean> cir) {
+    private static void onCanExtract(Inventory hopperInventory, Inventory fromInventory, ItemStack stack, int slot, Direction facing, CallbackInfoReturnable<Boolean> cir) {
         boolean isLocked;
 
-        if (inv instanceof DoubleInventory doubleInventory) {
+        if (fromInventory instanceof DoubleInventory doubleInventory) {
             isLocked = serverutils_isLocked(doubleInventory.first) || serverutils_isLocked(doubleInventory.second);
         } else {
-            isLocked = serverutils_isLocked(inv);
+            isLocked = serverutils_isLocked(fromInventory);
         }
 
         if (isLocked) {

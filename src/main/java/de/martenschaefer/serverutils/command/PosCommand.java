@@ -30,7 +30,7 @@ public class PosCommand {
         boolean inPublicChat = Permissions.check(context.getSource(), ServerUtilsMod.MODID + ".command.pos.public",
             ServerUtilsMod.getConfig().command().pos().inPublicChat());
 
-        BlockPos pos = new BlockPos(context.getSource().getPosition());
+        BlockPos pos = BlockPos.ofFloored(context.getSource().getPosition());
 
         MutableText text = Text.empty().append(context.getSource().getDisplayName().copy()).append(Text.literal(" is at ")
             .append(ModUtils.getCoordinateText(pos)).append("."));

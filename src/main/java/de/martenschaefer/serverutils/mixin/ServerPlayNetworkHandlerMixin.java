@@ -16,8 +16,11 @@ public class ServerPlayNetworkHandlerMixin {
     private void changeMessageType(PlayerManager manager, SignedMessage message, ServerPlayerEntity sender, MessageType.Parameters parameters) {
         if (!ServerUtilsMod.getConfig().chat().enabled()) {
             manager.broadcast(message, sender, parameters);
+            return;
         }
 
-        manager.broadcast(parameters.applyChatDecoration(message.getContent()), false);
+        System.out.println("Redirected message: " + message.getContent());
+
+        manager.broadcast(message.getContent(), false);
     }
 }

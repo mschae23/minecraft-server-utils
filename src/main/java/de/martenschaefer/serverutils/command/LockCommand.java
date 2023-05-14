@@ -17,7 +17,6 @@ import de.martenschaefer.serverutils.holder.LockPermissionHolder;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public class LockCommand {
@@ -43,7 +42,7 @@ public class LockCommand {
                         .executes(LockCommand::executePermission)))));
     }
 
-    private static int executeItemName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int executeItemName(CommandContext<ServerCommandSource> context) { // throws CommandSyntaxException {
         BlockPos pos = BlockPosArgumentType.getBlockPos(context, "pos");
         String itemName = StringArgumentType.getString(context, "item_name");
 
@@ -70,7 +69,7 @@ public class LockCommand {
         return 0;
     }
 
-    private static int executePermission(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int executePermission(CommandContext<ServerCommandSource> context) { // throws CommandSyntaxException {
         BlockPos pos = BlockPosArgumentType.getBlockPos(context, "pos");
         String permission = StringArgumentType.getString(context, "permission");
 

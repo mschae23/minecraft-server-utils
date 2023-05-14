@@ -5,14 +5,12 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
 import net.minecraft.network.message.MessageType;
-import net.minecraft.text.Decoration;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.dynamic.RegistryOps;
-import net.minecraft.util.registry.BuiltinRegistries;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -43,7 +41,7 @@ public class ServerUtilsMod implements ModInitializer {
 
     private static ServerUtilsConfigV2 CONFIG = LATEST_CONFIG_DEFAULT;
 
-    public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(Registry.MESSAGE_TYPE_KEY, new Identifier(MODID, "undecorated_chat"));
+    public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier(MODID, "undecorated_chat"));
 
     @Override
     public void onInitialize() {
@@ -52,8 +50,8 @@ public class ServerUtilsMod implements ModInitializer {
                 RegistryOps.of(JsonOps.INSTANCE, server.getRegistryManager()), LOGGER::info, LOGGER::error)
         );
 
-        BuiltinRegistries.add(BuiltinRegistries.MESSAGE_TYPE, ServerUtilsMod.UNDECORATED_CHAT,
-            new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("chat.type.text.narrate")));
+        // Registry.register(UNDECORATED_CHAT.getValue(),
+        //     new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("chat.type.text.narrate")));
 
         var config = getConfig();
 
