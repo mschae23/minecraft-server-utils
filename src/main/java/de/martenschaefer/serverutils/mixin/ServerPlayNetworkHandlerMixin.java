@@ -19,8 +19,6 @@ public class ServerPlayNetworkHandlerMixin {
             return;
         }
 
-        System.out.println("Redirected message: " + message.getContent());
-
         manager.broadcast(message.getContent(), false);
     }
 }
