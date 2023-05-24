@@ -21,11 +21,14 @@ import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
+import de.martenschaefer.serverutils.command.RegionCommand;
 import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
+import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
+import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import com.mojang.serialization.Codec;
@@ -53,6 +56,9 @@ public class ServerUtilsMod implements ModInitializer {
             CONFIG = ConfigIo.initializeConfig(Paths.get(MODID + ".json"), LATEST_CONFIG_VERSION, LATEST_CONFIG_DEFAULT, CONFIG_CODEC,
                 RegistryOps.of(JsonOps.INSTANCE, server.getRegistryManager()), LOGGER::info, LOGGER::error)
         );
+
+        ServerUtilsRegistries.init();
+        ProtectionShapeType.init();
 
         var config = getConfig();
 
@@ -84,6 +90,7 @@ public class ServerUtilsMod implements ModInitializer {
             LockCommand.register(dispatcher);
             UnlockCommand.register(dispatcher);
             VoteCommand.register(dispatcher);
+            RegionCommand.register(dispatcher);
         });
 
         // Check permissions on the server once, so that they are registered and can be auto-completed
@@ -96,6 +103,7 @@ public class ServerUtilsMod implements ModInitializer {
                 LockCommand.PERMISSIONS,
                 UnlockCommand.PERMISSIONS,
                 VoteCommand.PERMISSIONS,
+                RegionCommand.PERMISSIONS,
             }).flatMap(Arrays::stream);
 
             String[] permissions = new String[] {

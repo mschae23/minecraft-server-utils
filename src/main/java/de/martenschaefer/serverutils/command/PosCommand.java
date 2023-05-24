@@ -7,6 +7,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -41,6 +42,6 @@ public final class PosCommand {
             context.getSource().sendFeedback(text, false);
         }
 
-        return 15;
+        return Command.SINGLE_SUCCESS;
     }
 }
