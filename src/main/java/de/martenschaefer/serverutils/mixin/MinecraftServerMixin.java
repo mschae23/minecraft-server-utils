@@ -1,9 +1,6 @@
 package de.martenschaefer.serverutils.mixin;
 
-import net.minecraft.server.MinecraftServer;
-import org.spongepowered.asm.mixin.Mixin;
-
-@Mixin(MinecraftServer.class)
+// @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin {
     /*
     @Redirect(method = "logChatMessage", at = @At(value = "INVOKE", target = "Lnet/minecraft/text/Text;translatable(Ljava/lang/String;[Ljava/lang/Object;)Lnet/minecraft/text/MutableText;"))

@@ -62,7 +62,7 @@ public class ServerUtilsMod implements ModInitializer {
 
         if (config.deathCoords().enabled()) {
             // Death Coordinates
-            ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
                 if (!Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", true)) {
                     return;
                 }
