@@ -46,8 +46,8 @@ public class LuckPermsMessageDecorator implements MessageDecorator {
         suffix = suffix.replaceAll("&([\\da-f])", "§$1");
 
         Text result = Text.literal(prefix).append("<")
-            .append(sender.getName().copy().append(Text.literal(suffix)).formatted(usernameFormatting))
-            .append("> ").append(message);
+            .append(usernameFormatting == Formatting.RESET ? sender.getName().copy() : sender.getName().copy().formatted(usernameFormatting))
+            .append("> ").append(Text.literal(suffix)).append(message);
         return CompletableFuture.completedFuture(result);
     }
 }

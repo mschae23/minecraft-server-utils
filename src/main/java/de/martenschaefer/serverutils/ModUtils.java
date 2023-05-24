@@ -50,7 +50,7 @@ public final class ModUtils {
     }
 
     public static Formatting getUsernameFormatting(@Nullable String colorName) {
-        Formatting usernameFormatting = Formatting.WHITE;
+        Formatting usernameFormatting = Formatting.RESET;
 
         if (colorName != null) {
             Formatting formatting = Formatting.byName(colorName);

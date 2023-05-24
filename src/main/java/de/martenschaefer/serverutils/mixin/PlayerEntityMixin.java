@@ -1,5 +1,6 @@
 package de.martenschaefer.serverutils.mixin;
 
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -15,33 +16,27 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ServerPlayerEntity.class)
-public class ServerPlayerEntityMixin {
+@Mixin(PlayerEntity.class)
+public class PlayerEntityMixin {
     @Unique
     private static LuckPerms serverutils_luckPerms = null;
 
-    @Inject(method = "getPlayerListName", at = @At("RETURN"), cancellable = true)
-    private void onGetPlayerListName(CallbackInfoReturnable<Text> cir) {
-        if (!ServerUtilsMod.getConfig().chat().enabled()) {
+    @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
+    private void onGetDisplayname(CallbackInfoReturnable<Text> cir) {
+        if (!ServerUtilsMod.getConfig().chat().enabled() || ((PlayerEntity) (Object) this).getWorld().isClient) {
             return;
         }
 
-        Text original = cir.getReturnValue();
-        MutableText name;
-
-        ServerPlayerEntity player = (ServerPlayerEntity) (Object) (this);
-
-        if (original == null) {
-            name = player.getName().copy();
-        } else {
-            name = original.copy();
-        }
-
-        User user = getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(player);
+        @SuppressWarnings("DataFlowIssue")
+        User user = getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(((ServerPlayerEntity) (Object) this));
         String colorName = user.getCachedData().getMetaData().getMetaValue("username-color");
         Formatting usernameFormatting = ModUtils.getUsernameFormatting(colorName);
 
-        cir.setReturnValue(usernameFormatting == Formatting.RESET ? name : name.formatted(usernameFormatting));
+        if (usernameFormatting == Formatting.RESET) {
+            return;
+        }
+
+        cir.setReturnValue(((MutableText) cir.getReturnValue()).formatted(usernameFormatting));
     }
 
     @Unique
