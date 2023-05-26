@@ -6,12 +6,17 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import de.martenschaefer.serverutils.ModUtils;
+import de.martenschaefer.serverutils.ServerUtilsMod;
+import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.node.NonTransformableNode;
 import eu.pb4.placeholders.api.node.TextNode;
+import eu.pb4.placeholders.api.node.parent.FormattingNode;
 import eu.pb4.placeholders.api.parsers.NodeParser;
 import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -35,6 +40,7 @@ public class LuckPermsMessageDecorator implements MessageDecorator {
         }
 
         PlaceholderContext placeholderContext = PlaceholderContext.of(sender);
+        ParserContext parserContext = placeholderContext.asParserContext();
 
         User user = this.api.getPlayerAdapter(ServerPlayerEntity.class).getUser(sender);
         String prefix = user.getCachedData().getMetaData().getPrefix();
@@ -50,15 +56,20 @@ public class LuckPermsMessageDecorator implements MessageDecorator {
             suffix = "";
         }
 
-        prefix = prefix.replaceAll("&([\\da-f])", "§$1");
-        suffix = suffix.replaceAll("&([\\da-f])", "§$1");
+        NodeParser parser = NodeParser.merge(Permissions.check(sender, ServerUtilsMod.MODID + ".chat.unsafe.allow", false) ? TextParserV1.DEFAULT : TextParserV1.SAFE,
+            PatternPlaceholderParser.of(Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
 
-        Text parsedMessage = NodeParser.merge(TextParserV1.SAFE, PatternPlaceholderParser.of(Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER))
-            .parseText(TextNode.convert(message), placeholderContext.asParserContext());
+        // prefix = prefix.replaceAll("&([\\da-f])", "§$1");
+        // suffix = suffix.replaceAll("&([\\da-f])", "§$1");
 
-        Text result = Text.literal(prefix).append("<")
-            .append(usernameFormatting == Formatting.RESET ? sender.getName().copy() : sender.getName().copy().formatted(usernameFormatting))
-            .append("> ").append(Text.literal(suffix)).append(parsedMessage);
-        return CompletableFuture.completedFuture(result);
+        TextNode parsedPrefix = parser.parseNode(prefix);
+        TextNode parsedSuffix = parser.parseNode(suffix);
+        TextNode parsedMessage = parser.parseNode(TextNode.convert(message));
+
+        TextNode resultNode = TextNode.wrap(parsedPrefix, new NonTransformableNode(TextNode.of("<")),
+            usernameFormatting == Formatting.RESET ? TextNode.convert(sender.getName()) :
+                new FormattingNode(TextNode.array(TextNode.convert(sender.getName())), usernameFormatting),
+            new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage);
+        return CompletableFuture.completedFuture(resultNode.toText(parserContext));
     }
 }

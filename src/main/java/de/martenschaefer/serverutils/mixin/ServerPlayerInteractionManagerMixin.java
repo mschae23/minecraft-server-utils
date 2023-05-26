@@ -5,12 +5,15 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
@@ -31,7 +34,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerPlayerInteractionManager.class)
 public class ServerPlayerInteractionManagerMixin {
     @Shadow
+    @SuppressWarnings("unused")
     private int tickCounter;
+
+    @Shadow
+    protected ServerWorld world;
 
     @Shadow
     @Final
@@ -44,18 +51,35 @@ public class ServerPlayerInteractionManagerMixin {
     private int serverutils_ticksSinceUpdate = 0;
 
     @Unique
+    private Formatting serverutils_lastFormatting = null;
+
+    @Unique
     @Nullable
-    private String serverutils_lastColorName = null;
+    private Team serverutils_clientTeam = null;
 
     @Inject(method = "update", at = @At("RETURN"))
     private void onUpdate(CallbackInfo ci) {
         if (ServerUtilsMod.getConfig().chat().enabled() && this.serverutils_ticksSinceUpdate++ >= 100) {
             User user = getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(this.player);
             String colorName = user.getCachedData().getMetaData().getMetaValue("username-color");
+            Formatting formatting = Formatting.byName(colorName);
 
-            if (colorName != null && !colorName.equals(serverutils_lastColorName)) {
-                this.serverutils_lastColorName = colorName;
+            if (formatting == null) {
+                formatting = Formatting.RESET;
+            }
+
+            if (colorName != null && !formatting.equals(serverutils_lastFormatting)) {
+                if (this.serverutils_clientTeam == null) {
+                    this.serverutils_clientTeam = new Team(this.world.getScoreboard(), ServerUtilsMod.MODID + "_player_" + this.player.getEntityName());
+                    this.serverutils_clientTeam.getPlayerList().add(this.player.getEntityName());
+                }
+
+                this.serverutils_lastFormatting = formatting;
+                this.serverutils_clientTeam.setColor(formatting);
                 this.player.server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, this.player));
+                // This is suboptimal; every time someone joins or changes color, everyone will get a warning in their
+                // client logs. But it works for now.
+                this.player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(this.serverutils_clientTeam, true));
             }
 
             this.serverutils_ticksSinceUpdate = 0;
