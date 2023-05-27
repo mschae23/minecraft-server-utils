@@ -20,7 +20,7 @@ public abstract class VillagerEntityMixin extends Entity {
         super(type, world);
     }
 
-    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V"))
+    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V", remap = false))
     private void redirectLogVillagerDeath(Logger logger, String logText, Object entityObject, Object deathMessage) {
         VillagerEntity entity = (VillagerEntity) entityObject;
         MinecraftServer server = entity.getServer();
@@ -33,7 +33,7 @@ public abstract class VillagerEntityMixin extends Entity {
         server.getPlayerManager().broadcast(entity.getDamageTracker().getDeathMessage(), false);
     }
 
-    @Redirect(method = "onStruckByLightning", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V"))
+    @Redirect(method = "onStruckByLightning", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V", remap = false))
     private void redirectLogVillagerStruckByLightning(Logger logger, String logText, Object arg1, Object arg2, ServerWorld world, LightningEntity lightning) {
         if (!ServerUtilsMod.getConfig().chat().enabled()) {
             logger.info(logText, arg1, arg2);

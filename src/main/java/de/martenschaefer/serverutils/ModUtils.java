@@ -14,9 +14,15 @@ import net.minecraft.util.math.BlockPos;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import de.martenschaefer.serverutils.holder.LockPermissionHolder;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ModUtils {
+    private static LuckPerms luckPerms = null;
+
     private ModUtils() {
     }
 
@@ -63,6 +69,18 @@ public final class ModUtils {
         return usernameFormatting;
     }
 
+    public static Formatting getUsernameFormatting(@NotNull ServerPlayerEntity player) {
+        User user = getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(player);
+        String colorName = user.getCachedData().getMetaData().getMetaValue("username-color");
+        Formatting formatting = Formatting.byName(colorName);
+
+        if (formatting == null) {
+            formatting = Formatting.RESET;
+        }
+
+        return formatting;
+    }
+
     // Container Lock
 
     public static boolean canAlwaysOpen(ContainerLock lock) {
@@ -88,5 +106,13 @@ public final class ModUtils {
         } else {
             return Permissions.check(player, getLockPermission(config, lockPermission)) && lock.canOpen(player.getMainHandStack());
         }
+    }
+
+    private static LuckPerms getLuckPerms() {
+        if (luckPerms == null) {
+            luckPerms = LuckPermsProvider.get();
+        }
+
+        return luckPerms;
     }
 }

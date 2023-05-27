@@ -45,41 +45,25 @@ public class ServerPlayerInteractionManagerMixin {
     protected ServerPlayerEntity player;
 
     @Unique
-    private static LuckPerms serverutils_luckPerms = null;
-
-    @Unique
     private int serverutils_ticksSinceUpdate = 0;
 
     @Unique
     private Formatting serverutils_lastFormatting = null;
 
-    @Unique
-    @Nullable
-    private Team serverutils_clientTeam = null;
-
     @Inject(method = "update", at = @At("RETURN"))
     private void onUpdate(CallbackInfo ci) {
         if (ServerUtilsMod.getConfig().chat().enabled() && this.serverutils_ticksSinceUpdate++ >= 100) {
-            User user = getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(this.player);
-            String colorName = user.getCachedData().getMetaData().getMetaValue("username-color");
-            Formatting formatting = Formatting.byName(colorName);
+            Formatting formatting = ModUtils.getUsernameFormatting(this.player);
 
             if (formatting == null) {
                 formatting = Formatting.RESET;
             }
 
-            if (colorName != null && !formatting.equals(serverutils_lastFormatting)) {
-                if (this.serverutils_clientTeam == null) {
-                    this.serverutils_clientTeam = new Team(this.world.getScoreboard(), ServerUtilsMod.MODID + "_player_" + this.player.getEntityName());
-                    this.serverutils_clientTeam.getPlayerList().add(this.player.getEntityName());
-                }
-
+            if (!formatting.equals(serverutils_lastFormatting)) {
                 this.serverutils_lastFormatting = formatting;
-                this.serverutils_clientTeam.setColor(formatting);
+
                 this.player.server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, this.player));
-                // This is suboptimal; every time someone joins or changes color, everyone will get a warning in their
-                // client logs. But it works for now.
-                this.player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(this.serverutils_clientTeam, true));
+                this.player.server.getPlayerManager().getPlayerTeamStorage().updateFormatting(this.player, formatting);
             }
 
             this.serverutils_ticksSinceUpdate = 0;
@@ -113,14 +97,5 @@ public class ServerPlayerInteractionManagerMixin {
         }
 
         return true;
-    }
-
-    @Unique
-    private static LuckPerms getLuckPerms() {
-        if (serverutils_luckPerms == null) {
-            serverutils_luckPerms = LuckPermsProvider.get();
-        }
-
-        return serverutils_luckPerms;
     }
 }
