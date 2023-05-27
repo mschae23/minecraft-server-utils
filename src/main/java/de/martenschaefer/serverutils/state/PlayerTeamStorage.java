@@ -36,8 +36,6 @@ public class PlayerTeamStorage {
             Entry otherEntry = this.entries.get(other.getEntityName());
 
             if (otherEntry != null) {
-                // Clients get a "Received packet for unknown team" log message, meaning they think it's not
-                // an add team packet – but it works anyway.
                 player.networkHandler.sendPacket(TeamS2CPacket.updateTeam(otherEntry.team, true));
             }
         }

@@ -31,7 +31,7 @@ public class PlayerManagerMixin implements PlayerTeamStorageContainer {
         return new EntityStatusS2CPacket(entity, EntityStatuses.SET_OP_LEVEL_2);
     }
 
-    @Inject(method = "onPlayerConnect", at = @At("RETURN"))
+    @Inject(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;sendScoreboard(Lnet/minecraft/scoreboard/ServerScoreboard;Lnet/minecraft/server/network/ServerPlayerEntity;)V", shift = At.Shift.AFTER))
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         PlayerTeamStorage storage = this.getPlayerTeamStorage();
         storage.onPlayerConnect(player);
