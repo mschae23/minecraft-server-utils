@@ -21,7 +21,9 @@ import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
+import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
+import de.martenschaefer.serverutils.command.VoteCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import com.mojang.serialization.Codec;
@@ -75,9 +77,11 @@ public class ServerUtilsMod implements ModInitializer {
 
         // Command registration
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            ServerUtilsCommand.register(dispatcher);
             PosCommand.register(dispatcher);
             LockCommand.register(dispatcher);
             UnlockCommand.register(dispatcher);
+            VoteCommand.register(dispatcher);
         });
 
         // Check permissions on the server once, so that they are registered and can be auto-completed
@@ -85,9 +89,11 @@ public class ServerUtilsMod implements ModInitializer {
             CommandSource source = server.getCommandSource();
 
             Stream<String> commandPermissions = Arrays.stream(new String[][] {
+                ServerUtilsCommand.PERMISSIONS,
                 PosCommand.PERMISSIONS,
                 LockCommand.PERMISSIONS,
                 UnlockCommand.PERMISSIONS,
+                VoteCommand.PERMISSIONS,
             }).flatMap(Arrays::stream);
 
             String[] permissions = new String[] {

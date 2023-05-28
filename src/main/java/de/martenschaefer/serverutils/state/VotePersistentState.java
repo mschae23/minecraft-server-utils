@@ -21,6 +21,10 @@ public class VotePersistentState extends PersistentState {
         this(new VoteStorage());
     }
 
+    public VoteStorage getStorage() {
+        return this.storage;
+    }
+
     @Override
     public boolean isDirty() {
         return true;

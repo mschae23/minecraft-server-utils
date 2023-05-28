@@ -19,7 +19,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
-public class UnlockCommand {
+public final class UnlockCommand {
     public static final String PERMISSION_ROOT = ".command.unlock.root";
 
     public static final String[] PERMISSIONS = new String[] {

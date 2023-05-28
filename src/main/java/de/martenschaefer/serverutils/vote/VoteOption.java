@@ -1,6 +1,10 @@
 package de.martenschaefer.serverutils.vote;
 
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.dynamic.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,10 +17,12 @@ public class VoteOption {
 
     private final String name;
     private Text displayName;
+    private final Style nameStyle;
 
     public VoteOption(String name, Text displayName) {
         this.name = name;
         this.displayName = displayName;
+        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
     }
 
     public VoteOption(String name) {
@@ -33,5 +39,9 @@ public class VoteOption {
 
     public void setDisplayName(Text displayName) {
         this.displayName = displayName;
+    }
+
+    public MutableText getFormattedName() {
+        return Texts.bracketed(this.displayName.copy().fillStyle(this.nameStyle));
     }
 }

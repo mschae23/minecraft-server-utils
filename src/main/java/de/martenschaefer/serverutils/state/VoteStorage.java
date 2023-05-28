@@ -41,13 +41,14 @@ public class VoteStorage {
         return Stream.concat(this.votes.keySet().stream(), this.startedVotes.keySet().stream()).toList();
     }
 
-    public boolean addVote(String name) {
+    public Optional<Vote> addVote(String name) {
         if (this.votes.containsKey(name) || this.startedVotes.containsKey(name)) {
-            return false;
+            return Optional.empty();
         }
 
-        this.votes.put(name, new Vote(name));
-        return true;
+        Vote vote = new Vote(name);
+        this.votes.put(name, vote);
+        return Optional.of(vote);
     }
 
     public boolean removeVote(String name) {
@@ -62,25 +63,25 @@ public class VoteStorage {
         }
     }
 
-    public boolean startVote(String name, int startTick) {
+    public boolean startVote(String name, long startTime) {
         if (this.votes.containsKey(name)) {
             Vote vote = this.votes.get(name);
 
             this.votes.remove(name);
-            this.startedVotes.put(name, vote.toStartedVote(startTick));
+            this.startedVotes.put(name, vote.toStartedVote(startTime));
             return true;
         } else {
             return false;
         }
     }
 
-    public List<String> getEndedVotes(int tick) {
+    public List<String> getEndedVotes(long time) {
         List<String> result = new ArrayList<>();
 
         for (Map.Entry<String, StartedVote> entry: this.startedVotes.entrySet()) {
             StartedVote vote = entry.getValue();
 
-            if (vote.secondsToLive() > 0 && tick >= vote.startTick() + 20 * vote.secondsToLive()) {
+            if (vote.secondsToLive() > 0 && time >= vote.startTime() + 20L * vote.secondsToLive()) {
                 result.add(vote.name());
             }
         }

@@ -3,7 +3,12 @@ package de.martenschaefer.serverutils.vote;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.dynamic.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -24,6 +29,7 @@ public class Vote {
     private boolean announceEnd;
     private String permission;
     private final List<VoteOption> options;
+    private final Style nameStyle;
 
     public Vote(String name, Text displayName, int secondsToLive, boolean announceEnd, String permission, List<VoteOption> options) {
         this.name = name;
@@ -32,6 +38,7 @@ public class Vote {
         this.announceEnd = announceEnd;
         this.permission = permission;
         this.options = options;
+        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
     }
 
     public Vote(String name) {
@@ -78,7 +85,11 @@ public class Vote {
         return this.options;
     }
 
-    public StartedVote toStartedVote(int startTick) {
-        return new StartedVote(this.name, this.displayName, startTick, this.secondsToLive, this.announceEnd, this.permission, this.options, new HashMap<>());
+    public StartedVote toStartedVote(long startTime) {
+        return new StartedVote(this.name, this.displayName, startTime, this.secondsToLive, this.announceEnd, this.permission, this.options, new HashMap<>());
+    }
+
+    public MutableText getFormattedName() {
+        return Texts.bracketed(this.displayName.copy().fillStyle(this.nameStyle));
     }
 }

@@ -19,7 +19,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
-public class LockCommand {
+public final class LockCommand {
     public static final String PERMISSION_ROOT = ".command.lock.root";
 
     public static final String[] PERMISSIONS = new String[] {
