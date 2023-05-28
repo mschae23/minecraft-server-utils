@@ -14,6 +14,7 @@ public class Vote {
         Codecs.TEXT.fieldOf("displayname").forGetter(Vote::getDisplayName),
         Codec.INT.fieldOf("seconds_to_live").forGetter(Vote::getSecondsToLive),
         Codec.BOOL.fieldOf("announce_end").forGetter(Vote::shouldAnnounceEnd),
+        Codec.STRING.fieldOf("permission").forGetter(Vote::getPermission),
         VoteOption.CODEC.listOf().fieldOf("options").forGetter(Vote::getOptions)
     ).apply(instance, instance.stable(Vote::new)));
 
@@ -21,18 +22,20 @@ public class Vote {
     private Text displayName;
     private int secondsToLive;
     private boolean announceEnd;
+    private String permission;
     private final List<VoteOption> options;
 
-    public Vote(String name, Text displayName, int secondsToLive, boolean announceEnd, List<VoteOption> options) {
+    public Vote(String name, Text displayName, int secondsToLive, boolean announceEnd, String permission, List<VoteOption> options) {
         this.name = name;
         this.displayName = displayName;
         this.secondsToLive = secondsToLive;
         this.announceEnd = announceEnd;
+        this.permission = permission;
         this.options = options;
     }
 
     public Vote(String name) {
-        this(name, Text.literal(name), 0, false, new ArrayList<>());
+        this(name, Text.literal(name), 0, false, "", new ArrayList<>());
     }
 
     public String getName() {
@@ -63,11 +66,19 @@ public class Vote {
         this.announceEnd = announceEnd;
     }
 
+    public String getPermission() {
+        return this.permission;
+    }
+
+    public void setPermission(String permission) {
+        this.permission = permission;
+    }
+
     public List<VoteOption> getOptions() {
         return this.options;
     }
 
     public StartedVote toStartedVote(int startTick) {
-        return new StartedVote(this.name, this.displayName, startTick, this.secondsToLive, this.announceEnd, this.options, new HashMap<>());
+        return new StartedVote(this.name, this.displayName, startTick, this.secondsToLive, this.announceEnd, this.permission, this.options, new HashMap<>());
     }
 }

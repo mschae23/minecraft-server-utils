@@ -1,16 +1,24 @@
-package de.martenschaefer.serverutils.config;
+package de.martenschaefer.serverutils.config.v2;
 
 import de.martenschaefer.config.api.ModConfig;
+import de.martenschaefer.serverutils.config.BroadcastEntityDeathConfig;
+import de.martenschaefer.serverutils.config.ChatConfig;
+import de.martenschaefer.serverutils.config.ContainerLockConfig;
+import de.martenschaefer.serverutils.config.DeathCoordsConfig;
+import de.martenschaefer.serverutils.config.MiscConfigV2;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV3;
+import de.martenschaefer.serverutils.config.VoteConfig;
 import de.martenschaefer.serverutils.config.command.CommandConfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+@Deprecated
 public record ServerUtilsConfigV2(CommandConfig command,
                                   ChatConfig chat,
                                   DeathCoordsConfig deathCoords,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock,
-                                  MiscConfigV2 misc) implements ModConfig<ServerUtilsConfigV2> {
+                                  MiscConfigV2 misc) implements ModConfig<ServerUtilsConfigV3> {
     public static final Codec<ServerUtilsConfigV2> TYPE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV2::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV2::chat),
@@ -20,19 +28,19 @@ public record ServerUtilsConfigV2(CommandConfig command,
         MiscConfigV2.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV2::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV2::new)));
 
-    public static final ModConfig.Type<ServerUtilsConfigV2, ServerUtilsConfigV2> TYPE = new ModConfig.Type<>(2, TYPE_CODEC);
+    public static final Type<ServerUtilsConfigV3, ServerUtilsConfigV2> TYPE = new Type<>(2, TYPE_CODEC);
 
     public static final ServerUtilsConfigV2 DEFAULT =
         new ServerUtilsConfigV2(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT, MiscConfigV2.DEFAULT);
 
     @Override
-    public ModConfig.Type<ServerUtilsConfigV2, ?> type() {
+    public Type<ServerUtilsConfigV3, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV2 latest() {
-        return this;
+    public ServerUtilsConfigV3 latest() {
+        return new ServerUtilsConfigV3(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, VoteConfig.DEFAULT, this.misc);
     }
 
     @Override

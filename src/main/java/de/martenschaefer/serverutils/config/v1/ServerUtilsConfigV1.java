@@ -6,8 +6,9 @@ import de.martenschaefer.serverutils.config.ChatConfig;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import de.martenschaefer.serverutils.config.DeathCoordsConfig;
 import de.martenschaefer.serverutils.config.MiscConfigV2;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV2;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.config.command.CommandConfig;
+import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -17,7 +18,7 @@ public record ServerUtilsConfigV1(CommandConfig command,
                                   ChatConfig chat,
                                   DeathCoordsConfig deathCoords,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
-                                  ContainerLockConfig lock) implements ModConfig<ServerUtilsConfigV2> {
+                                  ContainerLockConfig lock) implements ModConfig<ServerUtilsConfigV3> {
     public static final Codec<ServerUtilsConfigV1> TYPE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV1::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV1::chat),
@@ -26,19 +27,19 @@ public record ServerUtilsConfigV1(CommandConfig command,
         ContainerLockConfig.CODEC.fieldOf("container_lock").forGetter(ServerUtilsConfigV1::lock)
     ).apply(instance, instance.stable(ServerUtilsConfigV1::new)));
 
-    public static final ModConfig.Type<ServerUtilsConfigV2, ServerUtilsConfigV1> TYPE = new ModConfig.Type<>(1, TYPE_CODEC);
+    public static final ModConfig.Type<ServerUtilsConfigV3, ServerUtilsConfigV1> TYPE = new ModConfig.Type<>(1, TYPE_CODEC);
 
     public static final ServerUtilsConfigV1 DEFAULT =
         new ServerUtilsConfigV1(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT);
 
     @Override
-    public ModConfig.Type<ServerUtilsConfigV2, ?> type() {
+    public ModConfig.Type<ServerUtilsConfigV3, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV2 latest() {
-        return new ServerUtilsConfigV2(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, MiscConfigV2.DEFAULT);
+    public ServerUtilsConfigV3 latest() {
+        return new ServerUtilsConfigV2(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, MiscConfigV2.DEFAULT).latest();
     }
 
     @Override

@@ -22,7 +22,7 @@ import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV2;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -35,11 +35,11 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static final ServerUtilsConfigV2 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV2.DEFAULT;
+    private static final ServerUtilsConfigV3 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV3.DEFAULT;
     private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
-    private static final Codec<ModConfig<ServerUtilsConfigV2>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+    private static final Codec<ModConfig<ServerUtilsConfigV3>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
 
-    private static ServerUtilsConfigV2 CONFIG = LATEST_CONFIG_DEFAULT;
+    private static ServerUtilsConfigV3 CONFIG = LATEST_CONFIG_DEFAULT;
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier(MODID, "undecorated_chat"));
 
@@ -49,9 +49,6 @@ public class ServerUtilsMod implements ModInitializer {
             CONFIG = ConfigIo.initializeConfig(Paths.get(MODID + ".json"), LATEST_CONFIG_VERSION, LATEST_CONFIG_DEFAULT, CONFIG_CODEC,
                 RegistryOps.of(JsonOps.INSTANCE, server.getRegistryManager()), LOGGER::info, LOGGER::error)
         );
-
-        // Registry.register(UNDECORATED_CHAT.getValue(),
-        //     new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("chat.type.text.narrate")));
 
         var config = getConfig();
 
@@ -104,15 +101,15 @@ public class ServerUtilsMod implements ModInitializer {
     }
 
     @SuppressWarnings("deprecation")
-    private static ModConfig.Type<ServerUtilsConfigV2, ?> getConfigType(int version) {
+    private static ModConfig.Type<ServerUtilsConfigV3, ?> getConfigType(int version) {
         //noinspection SwitchStatementWithTooFewBranches
         return new ModConfig.Type<>(version, switch (version) {
             case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
-            default -> ServerUtilsConfigV2.TYPE_CODEC;
+            default -> ServerUtilsConfigV3.TYPE_CODEC;
         });
     }
 
-    public static ServerUtilsConfigV2 getConfig() {
+    public static ServerUtilsConfigV3 getConfig() {
         return CONFIG;
     }
 
