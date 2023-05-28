@@ -3,6 +3,7 @@ package de.martenschaefer.serverutils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
@@ -20,6 +21,11 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
+import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.parsers.NodeParser;
+import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
+import eu.pb4.placeholders.api.parsers.TextParserV1;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -86,6 +92,11 @@ public final class ModUtils {
         }
 
         return formatting;
+    }
+
+    public static NodeParser createNodeParser(@Nullable ServerPlayerEntity player) {
+        return NodeParser.merge((player != null && Permissions.check(player, ServerUtilsMod.MODID + ".chat.unsafe.allow", false)) ? TextParserV1.DEFAULT : TextParserV1.SAFE,
+            PatternPlaceholderParser.of(Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
     }
 
     // Container Lock

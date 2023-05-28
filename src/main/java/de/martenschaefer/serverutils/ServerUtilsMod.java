@@ -26,6 +26,7 @@ import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
+import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -108,9 +109,9 @@ public class ServerUtilsMod implements ModInitializer {
 
     @SuppressWarnings("deprecation")
     private static ModConfig.Type<ServerUtilsConfigV3, ?> getConfigType(int version) {
-        //noinspection SwitchStatementWithTooFewBranches
         return new ModConfig.Type<>(version, switch (version) {
             case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
+            case 2 -> ServerUtilsConfigV2.TYPE_CODEC;
             default -> ServerUtilsConfigV3.TYPE_CODEC;
         });
     }

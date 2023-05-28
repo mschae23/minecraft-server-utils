@@ -8,7 +8,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.dynamic.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -37,7 +36,7 @@ public class Vote {
         this.secondsToLive = secondsToLive;
         this.announceEnd = announceEnd;
         this.permission = permission;
-        this.options = options;
+        this.options = new ArrayList<>(options);
         this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
     }
 

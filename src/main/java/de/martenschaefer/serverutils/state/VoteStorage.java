@@ -21,8 +21,8 @@ public class VoteStorage {
     private final Map<String, StartedVote> startedVotes;
 
     public VoteStorage(Map<String, Vote> votes, Map<String, StartedVote> startedVotes) {
-        this.votes = votes;
-        this.startedVotes = startedVotes;
+        this.votes = new HashMap<>(votes);
+        this.startedVotes = new HashMap<>(startedVotes);
     }
 
     public VoteStorage() {
@@ -89,11 +89,11 @@ public class VoteStorage {
         return result;
     }
 
-    private Map<String, Vote> getVotes() {
+    public Map<String, Vote> getVotes() {
         return this.votes;
     }
 
-    private Map<String, StartedVote> getStartedVotes() {
+    public Map<String, StartedVote> getStartedVotes() {
         return this.startedVotes;
     }
 }
