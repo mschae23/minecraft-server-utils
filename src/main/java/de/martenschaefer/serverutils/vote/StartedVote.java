@@ -1,5 +1,6 @@
 package de.martenschaefer.serverutils.vote;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +48,7 @@ public final class StartedVote {
         this.announceEnd = announceEnd;
         this.permission = permission;
         this.options = options;
-        this.votes = votes;
+        this.votes = new HashMap<>(votes);
         this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
     }
 

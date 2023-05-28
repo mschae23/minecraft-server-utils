@@ -21,7 +21,7 @@ public final class ServerUtilsCommand {
         dispatcher.register(CommandManager.literal(ServerUtilsMod.MODID)
             .requires(Permissions.require(ServerUtilsMod.MODID + PERMISSION_ROOT, 2))
             .then(CommandManager.literal("vote")
-                .requires(Permissions.require(ServerUtilsMod.MODID + "command." + ServerUtilsMod.MODID + ".vote", true))
+                .requires(Permissions.require(ServerUtilsMod.MODID + ".command." + ServerUtilsMod.MODID + ".vote", true))
                 .then(CommandManager.literal("add")
                     .then(CommandManager.argument("name", StringArgumentType.word())
                         .executes(VoteCommand::executeAdd)))
@@ -59,6 +59,9 @@ public final class ServerUtilsCommand {
                 .then(CommandManager.literal("start")
                     .then(CommandManager.argument("name", StringArgumentType.word())
                         .executes(VoteCommand::executeStart)))
+                .then(CommandManager.literal("end")
+                    .then(CommandManager.argument("name", StringArgumentType.word())
+                        .executes(VoteCommand::executeEnd)))
                 .then(CommandManager.literal("list")
                     .executes(VoteCommand::executeList))));
     }
