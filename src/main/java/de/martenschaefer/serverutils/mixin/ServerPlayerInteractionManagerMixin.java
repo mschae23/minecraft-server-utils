@@ -5,8 +5,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
-import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
-import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
@@ -18,10 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.model.user.User;
-import org.jetbrains.annotations.Nullable;
+import de.martenschaefer.serverutils.state.PlayerTeamStorageContainer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -63,7 +58,7 @@ public class ServerPlayerInteractionManagerMixin {
                 this.serverutils_lastFormatting = formatting;
 
                 this.player.server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, this.player));
-                this.player.server.getPlayerManager().getPlayerTeamStorage().updateFormatting(this.player, formatting);
+                ((PlayerTeamStorageContainer) this.player.server.getPlayerManager()).getPlayerTeamStorage().updateFormatting(this.player, formatting);
             }
 
             this.serverutils_ticksSinceUpdate = 0;

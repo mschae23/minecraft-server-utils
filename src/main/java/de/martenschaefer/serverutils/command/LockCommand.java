@@ -14,9 +14,12 @@ import net.minecraft.util.math.BlockPos;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.holder.LockPermissionHolder;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public class LockCommand {
@@ -27,6 +30,10 @@ public class LockCommand {
         ".command.lock.item_name",
         ".command.lock.permission",
     };
+
+    static final DynamicCommandExceptionType NO_CONTAINER_EXCEPTION = new DynamicCommandExceptionType(pos ->
+        Text.empty().append("There is no lockable container at ").append(ModUtils.getCoordinateTextUnstyled((BlockPos) pos))
+            .append("."));
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("lock")
@@ -42,7 +49,7 @@ public class LockCommand {
                         .executes(LockCommand::executePermission)))));
     }
 
-    private static int executeItemName(CommandContext<ServerCommandSource> context) { // throws CommandSyntaxException {
+    private static int executeItemName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgumentType.getBlockPos(context, "pos");
         String itemName = StringArgumentType.getString(context, "item_name");
 
@@ -60,16 +67,14 @@ public class LockCommand {
 
                 context.getSource().sendFeedback(Text.empty().append(Text.literal("Locked container at "))
                     .append(ModUtils.getCoordinateText(pos)).append("."), true);
-                return 15;
+                return Command.SINGLE_SUCCESS;
             }
         }
 
-        context.getSource().sendFeedback(Text.empty().append("There is no container at ").append(ModUtils.getCoordinateTextUnstyled(pos))
-            .append(".").formatted(Formatting.RED), false);
-        return 0;
+        throw NO_CONTAINER_EXCEPTION.create(pos);
     }
 
-    private static int executePermission(CommandContext<ServerCommandSource> context) { // throws CommandSyntaxException {
+    private static int executePermission(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgumentType.getBlockPos(context, "pos");
         String permission = StringArgumentType.getString(context, "permission");
 
@@ -87,12 +92,10 @@ public class LockCommand {
 
                 context.getSource().sendFeedback(Text.empty().append(Text.literal("Locked container at "))
                     .append(ModUtils.getCoordinateText(pos)).append("."), true);
-                return 15;
+                return Command.SINGLE_SUCCESS;
             }
         }
 
-        context.getSource().sendFeedback(Text.empty().append("There is no container at ").append(ModUtils.getCoordinateTextUnstyled(pos))
-            .append(".").formatted(Formatting.RED), false);
-        return 0;
+        throw NO_CONTAINER_EXCEPTION.create(pos);
     }
 }

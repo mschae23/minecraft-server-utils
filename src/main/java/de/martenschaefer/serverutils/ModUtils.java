@@ -45,6 +45,7 @@ public final class ModUtils {
 
             if (server == null) {
                 // This can't actually happen, since this is on a server.
+                ServerUtilsMod.LOGGER.warn("Death message of player with coordinates should have been public, but server was null");
                 player.sendMessage(text, false);
                 return;
             }

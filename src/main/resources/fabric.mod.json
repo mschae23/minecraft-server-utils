@@ -33,10 +33,5 @@
     "luckperms": "^5.4.0"
   },
   "suggests": {
-  },
-  "custom": {
-    "loom:injected_interfaces": {
-      "net/minecraft/class_3324": ["de/martenschaefer/serverutils/state/PlayerTeamStorageContainer"]
-    }
   }
 }

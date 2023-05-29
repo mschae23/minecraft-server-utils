@@ -14,6 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.holder.LockPermissionHolder;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -72,12 +73,10 @@ public class UnlockCommand {
 
                 context.getSource().sendFeedback(Text.empty().append(Text.literal("Unlocked container at "))
                     .append(ModUtils.getCoordinateText(pos)).append("."), true);
-                return 15;
+                return Command.SINGLE_SUCCESS;
             }
         }
 
-        context.getSource().sendFeedback(Text.empty().append("There is no container at ").append(ModUtils.getCoordinateTextUnstyled(pos))
-            .append(".").formatted(Formatting.RED), false);
-        return 0;
+        throw LockCommand.NO_CONTAINER_EXCEPTION.create(pos);
     }
 }
