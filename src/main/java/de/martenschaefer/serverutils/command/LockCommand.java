@@ -22,7 +22,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
-public class LockCommand {
+public final class LockCommand {
     public static final String PERMISSION_ROOT = ".command.lock.root";
 
     public static final String[] PERMISSIONS = new String[] {

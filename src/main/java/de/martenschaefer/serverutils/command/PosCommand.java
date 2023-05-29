@@ -11,7 +11,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
-public class PosCommand {
+public final class PosCommand {
     public static final String PERMISSION_ROOT = ".command.pos.root";
 
     public static final String[] PERMISSIONS = new String[] {

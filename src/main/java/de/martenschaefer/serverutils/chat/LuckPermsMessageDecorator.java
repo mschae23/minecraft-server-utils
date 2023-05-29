@@ -56,8 +56,7 @@ public class LuckPermsMessageDecorator implements MessageDecorator {
             suffix = "";
         }
 
-        NodeParser parser = NodeParser.merge(Permissions.check(sender, ServerUtilsMod.MODID + ".chat.unsafe.allow", false) ? TextParserV1.DEFAULT : TextParserV1.SAFE,
-            PatternPlaceholderParser.of(Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
+        NodeParser parser = ModUtils.createNodeParser(sender);
 
         // prefix = prefix.replaceAll("&([\\da-f])", "§$1");
         // suffix = suffix.replaceAll("&([\\da-f])", "§$1");
