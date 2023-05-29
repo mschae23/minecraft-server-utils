@@ -28,7 +28,12 @@ public final class DimensionShape implements ProtectionShape {
 
     @Override
     public boolean test(ProtectionContext context) {
-        return this.dimension.getValue().equals(context.dimension().getValue());
+        return this.testDimension(context.dimension());
+    }
+
+    @Override
+    public boolean testDimension(RegistryKey<World> dimension) {
+        return this.dimension.getValue().equals(dimension.getValue());
     }
 
     @Override

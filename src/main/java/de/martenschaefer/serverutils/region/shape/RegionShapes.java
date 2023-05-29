@@ -2,9 +2,11 @@ package de.martenschaefer.serverutils.region.shape;
 
 import java.util.Arrays;
 import java.util.List;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.World;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -34,10 +36,19 @@ public class RegionShapes {
         return this.combinedShape.test(context);
     }
 
+    public boolean testDimension(RegistryKey<World> dimension) {
+        return this.combinedShape.testDimension(dimension);
+    }
+
     public RegionShapes withShape(String name, ProtectionShape shape) {
         var newShapes = Arrays.copyOf(this.entries, this.entries.length + 1);
         newShapes[newShapes.length - 1] = new Entry(name, shape);
         return new RegionShapes(newShapes);
+    }
+
+    public RegionShapes withShapeReplaced(String name, ProtectionShape shape) {
+        Entry[] shapes = new Entry[] { new Entry(name, shape) };
+        return new RegionShapes(shapes);
     }
 
     public RegionShapes removeShape(String name) {
@@ -73,15 +84,20 @@ public class RegionShapes {
 
     public Text displayList() {
         if (this.entries.length == 0) {
-            return Text.literal("Empty\n").formatted(Formatting.YELLOW);
+            return Text.literal("  Empty").formatted(Formatting.YELLOW);
         }
 
         MutableText text = Text.literal("");
-        for (var entry : this.entries) {
-            text = text.append(Text.literal("  " + entry.name).formatted(Formatting.AQUA))
+        for (int i = 0; i < this.entries.length; i++) {
+            Entry entry = this.entries[i];
+
+            text.append(Text.literal("  " + entry.name).formatted(Formatting.AQUA))
                 .append(": ")
-                .append(entry.shape.displayShort())
-                .append("\n");
+                .append(entry.shape.displayShort());
+
+            if (i < this.entries.length - 1) {
+                text.append("\n");
+            }
         }
 
         return text;

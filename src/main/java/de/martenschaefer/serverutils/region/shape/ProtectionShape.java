@@ -14,6 +14,8 @@ public interface ProtectionShape {
 
     boolean test(ProtectionContext context);
 
+    boolean testDimension(RegistryKey<World> dimension);
+
     MutableText display();
 
     MutableText displayShort();

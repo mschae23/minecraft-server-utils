@@ -15,6 +15,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import de.martenschaefer.config.api.ConfigIo;
 import de.martenschaefer.config.api.ModConfig;
@@ -27,6 +28,7 @@ import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
+import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
 import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
@@ -114,6 +116,8 @@ public class ServerUtilsMod implements ModInitializer {
             Stream.concat(commandPermissions, Arrays.stream(permissions))
                 .forEach(permission -> Permissions.check(source, MODID + permission));
         });
+
+        RegionPersistentState.init();
     }
 
     @SuppressWarnings("deprecation")

@@ -35,9 +35,15 @@ public final class BoxShape implements ProtectionShape {
 
     @Override
     public boolean test(ProtectionContext context) {
-        return context.pos().x >= this.min.getX() && context.pos().x <= this.max.getX()
-            && context.pos().y >= this.min.getY() && context.pos().y <= this.max.getY()
-            && context.pos().z >= this.min.getZ() && context.pos().z <= this.max.getZ();
+        return context.dimension().getValue().equals(this.dimension.getValue())
+            && context.pos().x >= this.min.getX() && context.pos().x < (this.max.getX() + 1)
+            && context.pos().y >= this.min.getY() && context.pos().y < (this.max.getY() + 1)
+            && context.pos().z >= this.min.getZ() && context.pos().z < (this.max.getZ() + 1);
+    }
+
+    @Override
+    public boolean testDimension(RegistryKey<World> dimension) {
+        return dimension.getValue().equals(this.dimension.getValue());
     }
 
     @Override

@@ -18,8 +18,7 @@
     "lock.ExplosionBehaviorMixin",
     "lock.HopperBlockEntityMixin",
     "lock.LockableContainerBlockEntityMixin",
-    "lock.HopperBlockEntityMixin",
-    "lock.LockableContainerBlockEntityMixin",
+    "region.BlockItemMixin",
     "region.shape.ServerPlayerEntityMixin"
   ],
   "client": [

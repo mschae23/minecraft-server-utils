@@ -5,52 +5,54 @@ import java.util.Set;
 import java.util.stream.Stream;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
+import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class IndexedRegionMap implements RegionMap {
     private final RegionMap main = new SortedRegionHashMap();
-    // private final Reference2ObjectMap<RegistryKey<World>, DimensionMap> byDimension = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<RegistryKey<World>, SortedRegionHashMap> byDimension = new Reference2ObjectOpenHashMap<>();
 
     public void addDimension(RegistryKey<World> dimension) {
-        // var source = EventSource.allOf(dimension);
-        //
-        // var dimensionMap = new DimensionMap(dimension);
-        // for (var authority : this.main) {
-        //     if (authority.getEventFilter().accepts(source)) {
-        //         dimensionMap.add(authority);
-        //     }
-        // }
-        //
-        // this.byDimension.put(dimension, dimensionMap);
+        SortedRegionHashMap map = new SortedRegionHashMap();
+
+        for (Region region : this.main) {
+            if (region.shapes().testDimension(dimension)) {
+                map.add(region);
+            }
+        }
+
+        this.byDimension.put(dimension, map);
     }
 
     public void removeDimension(RegistryKey<World> dimension) {
-        // this.byDimension.remove(dimension);
+        this.byDimension.remove(dimension);
     }
 
-    // public Iterable<Region> select(RegistryKey<World> dimension, StimulusEvent<?> event) {
-    //     var dimensionMap = this.byDimension.get(dimension);
-    //     if (dimensionMap != null) {
-    //         var map = dimensionMap.byEvent.get(event);
-    //         if (map != null) {
-    //             return map;
-    //         }
-    //     }
-    //     return Collections.emptyList();
-    // }
+    public Stream<Region> findRegion(ProtectionContext context) {
+        SortedRegionHashMap map = this.byDimension.get(context.dimension());
+
+        if (map != null) {
+            return map.findRegion(context);
+        }
+
+        return Stream.empty();
+    }
 
     @Override
     public void clear() {
         this.main.clear();
-        // this.byDimension.clear();
+        this.byDimension.clear();
     }
 
     @Override
     public boolean add(Region authority) {
         if (this.main.add(authority)) {
-            // this.addToDimension(authority);
+            this.addToDimension(authority);
             return true;
         }
 
@@ -60,7 +62,7 @@ public final class IndexedRegionMap implements RegionMap {
     @Override
     public boolean replace(Region from, Region to) {
         if (this.main.replace(from, to)) {
-            // this.replaceInDimension(from, to);
+            this.replaceInDimension(from, to);
             return true;
         }
 
@@ -70,11 +72,11 @@ public final class IndexedRegionMap implements RegionMap {
     @Override
     @Nullable
     public Region remove(String key) {
-        var authority = this.main.remove(key);
+        var region = this.main.remove(key);
 
-        if (authority != null) {
-            // this.removeFromDimension(key);
-            return authority;
+        if (region != null) {
+            this.removeFromDimension(key);
+            return region;
         }
 
         return null;
@@ -117,37 +119,35 @@ public final class IndexedRegionMap implements RegionMap {
         return this.main.stream();
     }
 
-    // private void addToDimension(Region authority) {
-    //     var filter = authority.getEventFilter();
-    //     for (var entry : Reference2ObjectMaps.fastIterable(this.byDimension)) {
-    //         var dimension = entry.getKey();
-    //         if (filter.accepts(EventSource.allOf(dimension))) {
-    //             var dimensionMap = entry.getValue();
-    //             dimensionMap.add(authority);
-    //         }
-    //     }
-    // }
+    private void addToDimension(Region region) {
+        for (Reference2ObjectMap.Entry<RegistryKey<World>, SortedRegionHashMap> entry : Reference2ObjectMaps.fastIterable(this.byDimension)) {
+            RegistryKey<World> dimension = entry.getKey();
 
-    // private void replaceInDimension(Region from, Region to) {
-    //     var fromFilter = from.getEventFilter();
-    //     var toFilter = to.getEventFilter();
-    //
-    //     for (var dimensionMap : this.byDimension.values()) {
-    //         boolean fromIncluded = fromFilter.accepts(dimensionMap.eventSource);
-    //         boolean toIncluded = toFilter.accepts(dimensionMap.eventSource);
-    //         if (fromIncluded && toIncluded) {
-    //             dimensionMap.replace(from, to);
-    //         } else if (fromIncluded) {
-    //             dimensionMap.remove(from.getKey());
-    //         } else if (toIncluded) {
-    //             dimensionMap.add(to);
-    //         }
-    //     }
-    // }
+            if (region.shapes().testDimension(dimension)) {
+                SortedRegionHashMap map = entry.getValue();
+                map.add(region);
+            }
+        }
+    }
 
-    // private void removeFromDimension(String key) {
-    //     for (var authorities : this.byDimension.values()) {
-    //         authorities.remove(key);
-    //     }
-    // }
+    private void replaceInDimension(Region from, Region to) {
+        for (Reference2ObjectMap.Entry<RegistryKey<World>, SortedRegionHashMap> entry : Reference2ObjectMaps.fastIterable(this.byDimension)) {
+            boolean fromIncluded = from.shapes().testDimension(entry.getKey());
+            boolean toIncluded = to.shapes().testDimension(entry.getKey());
+
+            if (fromIncluded && toIncluded) {
+                entry.getValue().replace(from, to);
+            } else if (fromIncluded) {
+                entry.getValue().remove(from.key());
+            } else if (toIncluded) {
+                entry.getValue().add(to);
+            }
+        }
+    }
+
+    private void removeFromDimension(String key) {
+        for (SortedRegionHashMap map : this.byDimension.values()) {
+            map.remove(key);
+        }
+    }
 }

@@ -106,7 +106,7 @@ public final class VoteCommand {
         for (int i = 0; i < options.size(); i++) {
             VoteOption option = options.get(i);
 
-            result.append(Texts.bracketed(option.getDisplayName().copy().fillStyle(Style.EMPTY
+            result.append(" ").append(Texts.bracketed(option.getDisplayName().copy().fillStyle(Style.EMPTY
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/vote " + name + " " + option.getName()))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(option.getName()))))));
 
@@ -563,7 +563,7 @@ public final class VoteCommand {
         for (Map.Entry<String, Vote> entry : storage.getVotes().entrySet()) {
             Vote vote = entry.getValue();
 
-            result.append(Text.literal("- ").append(vote.getFormattedName()).append(" ").append(vote.getName()).append("\n"));
+            result.append(Text.literal(" - ").append(vote.getFormattedName()).append(" ").append(vote.getName()).append("\n"));
         }
 
         result.append(Text.literal("Started votes:"));
@@ -571,7 +571,7 @@ public final class VoteCommand {
         for (Map.Entry<String, StartedVote> entry : storage.getStartedVotes().entrySet()) {
             StartedVote vote = entry.getValue();
 
-            result.append(Text.literal("\n- ")).append(vote.getFormattedName()).append(" ").append(vote.name());
+            result.append(Text.literal("\n - ")).append(vote.getFormattedName()).append(" ").append(vote.name());
         }
 
         source.sendFeedback(result, false);
@@ -597,7 +597,7 @@ public final class VoteCommand {
         MutableText result = Text.empty().append("Options in vote ").append(formattedName).append(":");
 
         for (VoteOption option : options) {
-            result.append("\n- ").append(option.getFormattedName()).append(" ").append(option.getName());
+            result.append("\n - ").append(option.getFormattedName()).append(" ").append(option.getName());
         }
 
         source.sendFeedback(result, false);

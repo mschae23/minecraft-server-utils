@@ -17,6 +17,7 @@ import de.martenschaefer.serverutils.holder.LockPermissionHolder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class UnlockCommand {
@@ -45,7 +46,7 @@ public final class UnlockCommand {
             ));
     }
 
-    private static int execute(CommandContext<ServerCommandSource> context, boolean itemName, boolean permission) { // throws CommandSyntaxException {
+    private static int execute(CommandContext<ServerCommandSource> context, boolean itemName, boolean permission) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgumentType.getBlockPos(context, "pos");
 
         ServerWorld world = context.getSource().getWorld();

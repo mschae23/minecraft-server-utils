@@ -1,8 +1,10 @@
 package de.martenschaefer.serverutils.region.shape;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.text.MutableText;
+import net.minecraft.world.World;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +30,17 @@ public final class UnionShape implements ProtectionShape {
     public boolean test(ProtectionContext context) {
         for (ProtectionShape shape : this.scopes) {
             if (shape.test(context)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean testDimension(RegistryKey<World> dimension) {
+        for (ProtectionShape shape : this.scopes) {
+            if (shape.testDimension(dimension)) {
                 return true;
             }
         }
