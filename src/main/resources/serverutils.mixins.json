@@ -4,6 +4,7 @@
   "package": "de.martenschaefer.serverutils.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "ItemFrameEntityMixin",
     "LivingEntityMixin",
     "MinecraftServerMixin",
     "PlayerEntityMixin",

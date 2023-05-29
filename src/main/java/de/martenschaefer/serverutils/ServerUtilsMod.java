@@ -24,9 +24,10 @@ import de.martenschaefer.serverutils.command.PosCommand;
 import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV3;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
+import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -38,11 +39,11 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static final ServerUtilsConfigV3 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV3.DEFAULT;
+    private static final ServerUtilsConfigV4 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV4.DEFAULT;
     private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
-    private static final Codec<ModConfig<ServerUtilsConfigV3>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+    private static final Codec<ModConfig<ServerUtilsConfigV4>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
 
-    private static ServerUtilsConfigV3 CONFIG = LATEST_CONFIG_DEFAULT;
+    private static ServerUtilsConfigV4 CONFIG = LATEST_CONFIG_DEFAULT;
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier(MODID, "undecorated_chat"));
 
@@ -108,15 +109,16 @@ public class ServerUtilsMod implements ModInitializer {
     }
 
     @SuppressWarnings("deprecation")
-    private static ModConfig.Type<ServerUtilsConfigV3, ?> getConfigType(int version) {
+    private static ModConfig.Type<ServerUtilsConfigV4, ?> getConfigType(int version) {
         return new ModConfig.Type<>(version, switch (version) {
             case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
             case 2 -> ServerUtilsConfigV2.TYPE_CODEC;
-            default -> ServerUtilsConfigV3.TYPE_CODEC;
+            case 3 -> ServerUtilsConfigV3.TYPE_CODEC;
+            default -> ServerUtilsConfigV4.TYPE_CODEC;
         });
     }
 
-    public static ServerUtilsConfigV3 getConfig() {
+    public static ServerUtilsConfigV4 getConfig() {
         return CONFIG;
     }
 
