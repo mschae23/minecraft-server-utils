@@ -12,7 +12,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.GlobalPos;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -74,14 +76,21 @@ public class ServerUtilsMod implements ModInitializer {
         if (config.deathCoords().enabled()) {
             // Death Coordinates
             ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-                if (!Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", true)) {
+                if (alive || !Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", true)) {
                     return;
                 }
 
                 boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public", config.deathCoords().inPublicChat());
+                GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getWorld().getRegistryKey(), oldPlayer.getBlockPos()));
 
                 MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))
-                    .append(ModUtils.getCoordinateText(oldPlayer.getBlockPos())).append(".");
+                    .append(ModUtils.getCoordinateText(deathPos.getPos()));
+
+                if (newPlayer.getLastDeathPos().isPresent()) {
+                    text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW));
+                } else {
+                    text.append(".");
+                }
 
                 ModUtils.sendMessage(newPlayer, text, inPublicChat);
             });

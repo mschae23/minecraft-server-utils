@@ -21,6 +21,8 @@
     "region.BlockItemMixin",
     "region.EndPortalBlockMixin",
     "region.EntityMixin",
+    "region.PlayerEntityMixin",
+    "region.ServerPlayerInteractionManagerMixin",
     "region.shape.ServerPlayerEntityMixin"
   ],
   "client": [

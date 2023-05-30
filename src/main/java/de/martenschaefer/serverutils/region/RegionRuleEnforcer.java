@@ -2,14 +2,19 @@ package de.martenschaefer.serverutils.region;
 
 import java.util.stream.Stream;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
@@ -30,7 +35,11 @@ public final class RegionRuleEnforcer {
     }
 
     public static ActionResult onBlockUse(PlayerEntity player, BlockPos pos) {
-        return onEvent(player, Vec3d.ofCenter(pos), "block.use");
+        return onEvent(player, Vec3d.ofCenter(pos), "block.use", true);
+    }
+
+    public static TypedActionResult<ItemStack> onItemUse(PlayerEntity player, Hand hand, Vec3d pos) {
+        return new TypedActionResult<>(onEvent(player, pos, "item.use", true), player.getStackInHand(hand));
     }
 
     public static ActionResult onNetherPortalUse(PlayerEntity player, Vec3d pos) {
@@ -39,11 +48,6 @@ public final class RegionRuleEnforcer {
 
     public static ActionResult onEndPortalUse(PlayerEntity player, Vec3d pos) {
         return onEvent(player, pos, "portal.end.use");
-    }
-
-    public static void init() {
-        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> onBlockBreak(player, pos));
-        // UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
     }
 
     public static ActionResult onEvent(PlayerEntity player, Vec3d pos, String action) {
@@ -59,6 +63,24 @@ public final class RegionRuleEnforcer {
         }
 
         return ActionResult.PASS;
+    }
+
+    public static ActionResult onEvent(PlayerEntity player, Vec3d pos, String action, boolean syncInventory) {
+        ActionResult result = onEvent(player, pos, action);
+
+        if (syncInventory && result == ActionResult.FAIL) {
+            // Sync the player's inventory, as it may have used the item already.
+            player.getInventory().markDirty();
+            player.playerScreenHandler.updateToClient();
+        }
+
+        return result;
+    }
+
+    public static void init() {
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> onBlockBreak(player, pos));
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
+        UseItemCallback.EVENT.register((player, world, hand) -> onItemUse(player, hand, player.getPos()));
     }
 
     private static String getPermission(String key, String action) {
