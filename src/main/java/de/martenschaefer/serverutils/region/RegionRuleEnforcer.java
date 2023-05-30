@@ -10,10 +10,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.util.TriState;
+import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
-import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.luckperms.api.util.Tristate;
 
 public final class RegionRuleEnforcer {
     private static final Text DENIED_TEXT = Text.literal("You cannot do that in this region!");
@@ -65,10 +65,10 @@ public final class RegionRuleEnforcer {
         return ServerUtilsMod.MODID + ".region." + key + "." + action;
     }
 
-    private static boolean checkPermission(PlayerEntity player, Stream<Region> regions, String action) {
+    private static boolean checkPermission(ServerPlayerEntity player, Stream<Region> regions, String action) {
         return regions.map(Region::key).map(key -> getPermission(key, action))
-            .map(permission -> Permissions.getPermissionValue(player, permission))
-            .filter(state -> state != TriState.DEFAULT).findFirst().orElse(TriState.TRUE).get();
+            .map(permission -> ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(player).checkPermission(permission))
+            .filter(state -> state != Tristate.UNDEFINED).findFirst().orElse(Tristate.TRUE).asBoolean();
     }
 
     private static void onCheckedPermission(ServerPlayerEntity player, boolean result) {

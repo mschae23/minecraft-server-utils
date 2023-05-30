@@ -8,6 +8,8 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryOps;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -15,7 +17,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import de.martenschaefer.config.api.ConfigIo;
 import de.martenschaefer.config.api.ModConfig;
@@ -28,14 +29,15 @@ import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
+import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
+import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
 import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
-import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
-import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.luckperms.api.event.user.UserDataRecalculateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +120,17 @@ public class ServerUtilsMod implements ModInitializer {
         });
 
         RegionPersistentState.init();
+
+        ServerLifecycleEvents.SERVER_STARTED.register(server ->
+            ModUtils.getLuckPerms().getEventBus().subscribe(UserDataRecalculateEvent.class, event -> onUserDataRecalculate(server, event)));
+    }
+
+    private static void onUserDataRecalculate(MinecraftServer server, UserDataRecalculateEvent event) {
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(event.getUser().getUniqueId());
+
+        if (player != null) {
+            ModUtils.updateUsernameFormatting(server, player, event.getData().getMetaData());
+        }
     }
 
     @SuppressWarnings("deprecation")

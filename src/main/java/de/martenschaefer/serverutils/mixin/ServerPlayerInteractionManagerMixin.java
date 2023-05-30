@@ -46,15 +46,15 @@ public class ServerPlayerInteractionManagerMixin {
     @Final
     protected ServerPlayerEntity player;
 
-    @Unique
-    private int serverutils_ticksSinceUpdate = 0;
+    // @Unique
+    // private int serverutils_ticksSinceUpdate = 0;
 
-    @Unique
-    private Formatting serverutils_lastFormatting = null;
+    // @Unique
+    // private Formatting serverutils_lastFormatting = null;
 
     @Inject(method = "update", at = @At("RETURN"))
     private void onUpdate(CallbackInfo ci) {
-        if (ServerUtilsMod.getConfig().chat().enabled() && this.serverutils_ticksSinceUpdate++ >= 100) {
+        /* if (ServerUtilsMod.getConfig().chat().enabled() && this.serverutils_ticksSinceUpdate++ >= 100) {
             Formatting formatting = ModUtils.getUsernameFormatting(this.player);
 
             if (formatting == null) {
@@ -69,7 +69,7 @@ public class ServerPlayerInteractionManagerMixin {
             }
 
             this.serverutils_ticksSinceUpdate = 0;
-        }
+        } */
     }
 
     @Redirect(method = "processBlockBreakingAction", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;canPlayerModifyAt(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/math/BlockPos;)Z"))
