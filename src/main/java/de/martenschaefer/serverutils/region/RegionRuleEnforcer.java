@@ -10,7 +10,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
@@ -34,9 +33,17 @@ public final class RegionRuleEnforcer {
         return onEvent(player, Vec3d.ofCenter(pos), "block.use");
     }
 
+    public static ActionResult onNetherPortalUse(PlayerEntity player, Vec3d pos) {
+        return onEvent(player, pos, "portal.nether.use");
+    }
+
+    public static ActionResult onEndPortalUse(PlayerEntity player, Vec3d pos) {
+        return onEvent(player, pos, "portal.end.use");
+    }
+
     public static void init() {
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> onBlockBreak(player, pos));
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
+        // UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
     }
 
     public static ActionResult onEvent(PlayerEntity player, Vec3d pos, String action) {

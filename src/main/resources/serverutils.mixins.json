@@ -19,6 +19,8 @@
     "lock.HopperBlockEntityMixin",
     "lock.LockableContainerBlockEntityMixin",
     "region.BlockItemMixin",
+    "region.EndPortalBlockMixin",
+    "region.EntityMixin",
     "region.shape.ServerPlayerEntityMixin"
   ],
   "client": [

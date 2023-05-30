@@ -21,7 +21,7 @@ import net.minecraft.world.World;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
-import de.martenschaefer.serverutils.region.RegionPersistentState;
+import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import de.martenschaefer.serverutils.state.PlayerTeamStorageContainer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -103,7 +103,7 @@ public class ServerPlayerInteractionManagerMixin {
 
     @Inject(method = "interactBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;onUse(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;Lnet/minecraft/util/hit/BlockHitResult;)Lnet/minecraft/util/ActionResult;", ordinal = 0), cancellable = true)
     private void onUseBlock(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
-        ActionResult result = RegionPersistentState.onUseBlockEvent(player, world, hand, hitResult);
+        ActionResult result = RegionRuleEnforcer.onBlockUse(player, hitResult.getBlockPos());
 
         if (result != ActionResult.PASS) {
             cir.setReturnValue(result);
