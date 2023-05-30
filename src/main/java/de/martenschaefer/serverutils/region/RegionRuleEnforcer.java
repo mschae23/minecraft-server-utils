@@ -23,6 +23,16 @@ import net.luckperms.api.util.Tristate;
 public final class RegionRuleEnforcer {
     private static final Text DENIED_TEXT = Text.literal("You cannot do that in this region!");
 
+    public static final String[] RULES = new String[] {
+        "block.break",
+        "block.place",
+        "block.use",
+        "item.use",
+        "world.modify",
+        "portal.nether.use",
+        "portal.end.use",
+    };
+
     private RegionRuleEnforcer() {
     }
 
@@ -40,6 +50,10 @@ public final class RegionRuleEnforcer {
 
     public static TypedActionResult<ItemStack> onItemUse(PlayerEntity player, Hand hand, Vec3d pos) {
         return new TypedActionResult<>(onEvent(player, pos, "item.use", true), player.getStackInHand(hand));
+    }
+
+    public static ActionResult onWorldModify(PlayerEntity player, BlockPos pos) {
+        return onEvent(player, Vec3d.ofCenter(pos), "world.modify", true);
     }
 
     public static ActionResult onNetherPortalUse(PlayerEntity player, Vec3d pos) {
@@ -81,6 +95,10 @@ public final class RegionRuleEnforcer {
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> onBlockBreak(player, pos));
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
         UseItemCallback.EVENT.register((player, world, hand) -> onItemUse(player, hand, player.getPos()));
+    }
+
+    public static String getBasePermission(String key, String action) {
+        return ".region." + key + "." + action;
     }
 
     private static String getPermission(String key, String action) {

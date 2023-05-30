@@ -23,6 +23,7 @@
     "region.EntityMixin",
     "region.PlayerEntityMixin",
     "region.ServerPlayerInteractionManagerMixin",
+    "region.ServerWorldMixin",
     "region.shape.ServerPlayerEntityMixin"
   ],
   "client": [

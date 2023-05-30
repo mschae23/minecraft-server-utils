@@ -33,7 +33,9 @@ import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
+import de.martenschaefer.serverutils.region.Region;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
+import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
 import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import com.mojang.serialization.Codec;
@@ -124,7 +126,11 @@ public class ServerUtilsMod implements ModInitializer {
                 ".death.printcoords.public",
             };
 
-            Stream.concat(commandPermissions, Arrays.stream(permissions))
+            Stream<String> regionPermissions = RegionPersistentState.get(server).getRegions().stream()
+                .map(Region::key).flatMap(name -> Arrays.stream(RegionRuleEnforcer.RULES)
+                    .map(rule -> RegionRuleEnforcer.getBasePermission(name, rule)));
+
+            Stream.concat(Stream.concat(commandPermissions, Arrays.stream(permissions)), regionPermissions)
                 .forEach(permission -> Permissions.check(source, MODID + permission));
         });
 

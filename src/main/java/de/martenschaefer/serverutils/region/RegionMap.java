@@ -1,11 +1,8 @@
 package de.martenschaefer.serverutils.region;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import org.jetbrains.annotations.Nullable;

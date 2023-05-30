@@ -1,5 +1,6 @@
 package de.martenschaefer.serverutils.command;
 
+import java.util.Arrays;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,6 +17,7 @@ import net.minecraft.world.World;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.Region;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
+import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import de.martenschaefer.serverutils.region.shape.ProtectionShape;
 import de.martenschaefer.serverutils.region.shape.RegionShapes;
@@ -48,7 +50,6 @@ public final class RegionCommand {
     };
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        // TODO Add remaining commands
         dispatcher.register(CommandManager.literal("region")
             .requires(Permissions.require(ServerUtilsMod.MODID + PERMISSION_ROOT, 3))
             .then(CommandManager.literal("add")
@@ -122,6 +123,10 @@ public final class RegionCommand {
         Region region = operator.apply(Region.create(key));
 
         if (regionState.addRegion(region)) {
+            // Check permissions for every rule once, for LuckPerms command auto-completion
+            Arrays.stream(RegionRuleEnforcer.RULES).map(rule -> RegionRuleEnforcer.getBasePermission(region.key(), rule))
+                .forEach(permission -> Permissions.check(source, ServerUtilsMod.MODID + permission));
+
             RegionShapes shapes = region.shapes();
 
             if (shapes.isEmpty()) {
