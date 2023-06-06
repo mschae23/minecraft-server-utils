@@ -72,10 +72,10 @@ public class ServerUtilsMod implements ModInitializer {
 
         var config = getConfig();
 
-        if (config.chat().enabled()) {
-            // Message Decorator for prefixes, suffixes and username colors
-            ServerMessageDecoratorEvent.EVENT.register(ServerMessageDecoratorEvent.STYLING_PHASE, new LuckPermsMessageDecorator());
-        }
+        // if (config.chat().enabled()) {
+        //     // Message Decorator for prefixes, suffixes and username colors
+        //     ServerMessageDecoratorEvent.EVENT.register(ServerMessageDecoratorEvent.STYLING_PHASE, new LuckPermsMessageDecorator());
+        // }
 
         if (config.deathCoords().enabled()) {
             // Death Coordinates

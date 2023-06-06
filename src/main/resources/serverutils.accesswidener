@@ -3,3 +3,6 @@ accessible	field	net/minecraft/inventory/ContainerLock	key	Ljava/lang/String;
 accessible	field	net/minecraft/inventory/DoubleInventory	first	Lnet/minecraft/inventory/Inventory;
 accessible	field	net/minecraft/inventory/DoubleInventory	second	Lnet/minecraft/inventory/Inventory;
 accessible	field	net/minecraft/block/entity/LockableContainerBlockEntity	lock	Lnet/minecraft/inventory/ContainerLock;
+
+accessible	method	net/minecraft/server/PlayerManager	verify	(Lnet/minecraft/network/message/SignedMessage;)Z
+accessible field net/minecraft/server/MinecraftServer LOGGER Lorg/slf4j/Logger;

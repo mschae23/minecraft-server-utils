@@ -2,8 +2,12 @@ package de.martenschaefer.serverutils;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
@@ -12,6 +16,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import de.martenschaefer.serverutils.holder.LockPermissionHolder;
 import de.martenschaefer.serverutils.state.PlayerTeamStorageContainer;
@@ -85,9 +90,48 @@ public final class ModUtils {
         ((PlayerTeamStorageContainer) server.getPlayerManager()).getPlayerTeamStorage().updateFormatting(player, usernameFormatting);
     }
 
-    public static NodeParser createNodeParser(@Nullable ServerPlayerEntity player) {
-        return NodeParser.merge((player != null && Permissions.check(player, ServerUtilsMod.MODID + ".chat.unsafe.allow", false)) ? TextParserV1.DEFAULT : TextParserV1.SAFE,
+    public static NodeParser createNodeParser(boolean allowUnsafe) {
+        return NodeParser.merge(allowUnsafe ? TextParserV1.DEFAULT : TextParserV1.SAFE,
             PatternPlaceholderParser.of(Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
+    }
+
+    public static boolean allowUnsafeChat(@Nullable ServerPlayerEntity player) {
+        return player != null && Permissions.check(player, ServerUtilsMod.MODID + ".chat.unsafe.allow", false);
+    }
+
+    public static NodeParser createNodeParser(@Nullable ServerPlayerEntity player) {
+        return createNodeParser(allowUnsafeChat(player));
+    }
+
+    public static Text decorateText(Text message, ServerCommandSource source, MessageType.Parameters params) {
+        if (source.getPlayer() != null) {
+            return LuckPermsMessageDecorator.process(source.getPlayer(), message, params);
+        } else {
+            return LuckPermsMessageDecorator.processFromCommandSource(source, source.getDisplayName(), "", "", Formatting.RESET,
+                message, params, source.hasPermissionLevel(3));
+        }
+    }
+
+    public static void broadcastPlayerChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerPlayerEntity sender, MessageType.Parameters params) {
+        boolean verified = manager.verify(message);
+        Text decoratedMessage = LuckPermsMessageDecorator.process(sender, message.getContent(), params);
+        Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
+
+        manager.broadcast(loggedText, player -> decoratedMessage, false);
+    }
+
+    public static void broadcastSourceChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerCommandSource source, MessageType.Parameters params) {
+        if (source.getPlayer() != null) {
+            broadcastPlayerChatMessageFromRedirect(manager, message, source.getPlayer(), params);
+            return;
+        }
+
+        boolean verified = manager.verify(message);
+        Text decoratedMessage = LuckPermsMessageDecorator.processFromCommandSource(source, source.getDisplayName(), "", "", Formatting.RESET,
+            message.getContent(), params, source.hasPermissionLevel(3));
+        Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
+
+        manager.broadcast(loggedText, player -> decoratedMessage, false);
     }
 
     // Container Lock
