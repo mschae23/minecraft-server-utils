@@ -20,6 +20,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
+import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.config.api.ConfigIo;
 import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
@@ -33,6 +34,7 @@ import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
+import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
 import de.martenschaefer.serverutils.region.Region;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
@@ -89,9 +91,7 @@ public class ServerUtilsMod implements ModInitializer {
                     .append(ModUtils.getCoordinateText(deathPos.getPos()));
 
                 if (newPlayer.getLastDeathPos().isPresent()) {
-                    text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW)).append(".");
-                } else {
-                    text.append(".");
+                    text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW));
                 }
 
                 if (inPublicChat) {
@@ -106,6 +106,11 @@ public class ServerUtilsMod implements ModInitializer {
                 newPlayer.sendMessage(text, false);
             });
         }
+
+        AnnounceEntityDeathEvent.EVENT.register((world, entity, message) -> {
+            world.getServer().getPlayerManager().broadcast(message, false);
+            return TriState.DEFAULT;
+        });
 
         // Command registration
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
