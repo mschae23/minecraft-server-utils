@@ -48,15 +48,7 @@ public final class ModUtils {
 
     public static void sendMessage(ServerPlayerEntity player, Text text, boolean inPublicChat) {
         if (inPublicChat) {
-            MinecraftServer server = player.getServer();
-
-            if (server == null) {
-                // This can't actually happen, since this is on a server.
-                ServerUtilsMod.LOGGER.warn("Death message of player with coordinates should have been public, but server was null");
-                player.sendMessage(text, false);
-                return;
-            }
-
+            MinecraftServer server = player.getWorld().getServer();
             server.getPlayerManager().broadcast(text, false);
         } else {
             player.sendMessage(text, false);

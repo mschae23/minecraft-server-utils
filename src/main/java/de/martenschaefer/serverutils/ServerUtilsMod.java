@@ -89,12 +89,21 @@ public class ServerUtilsMod implements ModInitializer {
                     .append(ModUtils.getCoordinateText(deathPos.getPos()));
 
                 if (newPlayer.getLastDeathPos().isPresent()) {
-                    text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW));
+                    text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW)).append(".");
                 } else {
                     text.append(".");
                 }
 
-                ModUtils.sendMessage(newPlayer, text, inPublicChat);
+                if (inPublicChat) {
+                    // If in_public_chat is true, send message to everyone
+                    newPlayer.getWorld().getServer().getPlayerManager().broadcast(text, false);
+                }
+
+                // Otherwise, send it to the player directly.
+                // Because COPY_FROM is called in a state where neither the old nor new player are in the
+                // player manager's "players" list, the message needs to be manually sent to the player that died
+                // even if in_public_chat is true.
+                newPlayer.sendMessage(text, false);
             });
         }
 
