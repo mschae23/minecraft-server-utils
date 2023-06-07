@@ -130,12 +130,12 @@ public final class RegionCommand {
             RegionShapes shapes = region.shapes();
 
             if (shapes.isEmpty()) {
-                source.sendFeedback(Text.literal("Added empty region as '" + key + "'"), true);
+                source.sendFeedback(() -> Text.literal("Added empty region as '" + key + "'"), true);
             } else {
-                source.sendFeedback(Text.literal("Added region as '" + key + "' with ").append(shapes.displayShort()), true);
+                source.sendFeedback(() -> Text.literal("Added region as '" + key + "' with ").append(shapes.displayShort()), true);
             }
 
-            source.sendFeedback(Text.literal("Run ")
+            source.sendFeedback(() -> Text.literal("Run ")
                     .append(Text.literal("/region shape start").formatted(Formatting.GRAY))
                     .append(" to include additional shapes in this region"),
                 false
@@ -155,7 +155,7 @@ public final class RegionCommand {
         Region region = regionState.removeRegion(key);
 
         if (region != null) {
-            source.sendFeedback(Text.literal("Removed region '" + key + "'"), true);
+            source.sendFeedback(() -> Text.literal("Removed region '" + key + "'"), true);
             return Command.SINGLE_SUCCESS;
         } else {
             throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
@@ -191,7 +191,7 @@ public final class RegionCommand {
         Region region = regionState.getRegionByKey(key);
 
         if (region != null) {
-            source.sendFeedback(Text.literal("Region '" + key + "':")
+            source.sendFeedback(() -> Text.literal("Region '" + key + "':")
                 .append("\n Level: ").append(String.valueOf(region.level()))
                 .append("\n Shape:\n").append(region.shapes().displayList()), false);
             return Command.SINGLE_SUCCESS;
@@ -210,7 +210,7 @@ public final class RegionCommand {
         if (region != null) {
             regionState.replaceRegion(region, operator.apply(region));
 
-            source.sendFeedback(Text.literal("Modified region '" + key + "'"), true);
+            source.sendFeedback(() -> Text.literal("Modified region '" + key + "'"), true);
             return Command.SINGLE_SUCCESS;
         } else {
             throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
@@ -221,7 +221,7 @@ public final class RegionCommand {
         ServerCommandSource source = context.getSource();
         RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
 
-        source.sendFeedback(Text.empty()
+        source.sendFeedback(() -> Text.empty()
             .append(Text.literal("Regions:\n"))
             .append(Text.literal(regionState.getRegions().stream()
                 .map(Region::key).map(key -> " - " + key)
@@ -239,7 +239,7 @@ public final class RegionCommand {
 
         Stream<Region> possibleRegions = regionState.findRegion(protectionContext);
 
-        source.sendFeedback(Text.empty()
+        source.sendFeedback(() -> Text.empty()
             .append(Text.literal("Regions:\n"))
             .append(Text.literal(possibleRegions
                 .map(Region::key).map(key -> " - " + key)

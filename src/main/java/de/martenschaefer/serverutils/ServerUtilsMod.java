@@ -99,7 +99,7 @@ public class ServerUtilsMod implements ModInitializer {
 
                 if (inPublicChat) {
                     // If in_public_chat is true, send message to everyone
-                    newPlayer.getWorld().getServer().getPlayerManager().broadcast(text, false);
+                    newPlayer.getServerWorld().getServer().getPlayerManager().broadcast(text, false);
                 }
 
                 // Otherwise, send it to the player directly.

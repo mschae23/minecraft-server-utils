@@ -39,7 +39,7 @@ public final class PosCommand {
         if (inPublicChat) {
             context.getSource().getServer().getPlayerManager().broadcast(text, false);
         } else {
-            context.getSource().sendFeedback(text, false);
+            context.getSource().sendFeedback(() -> text, false);
         }
 
         return Command.SINGLE_SUCCESS;

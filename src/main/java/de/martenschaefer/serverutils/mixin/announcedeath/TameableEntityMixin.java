@@ -25,7 +25,6 @@ public abstract class TameableEntityMixin extends AnimalEntity {
         return ServerUtilsMod.getConfig().broadcastEntityDeath().enabled() || instance.getBoolean(rule);
     }
 
-    @SuppressWarnings("PatternVariableHidesField")
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;sendMessage(Lnet/minecraft/text/Text;)V"))
     private void redirectSendMessage(LivingEntity owner, Text message) {
         if (!ServerUtilsMod.getConfig().broadcastEntityDeath().enabled()) {
@@ -33,7 +32,7 @@ public abstract class TameableEntityMixin extends AnimalEntity {
             return;
         }
 
-        if (this.world instanceof ServerWorld world) {
+        if (this.getWorld() instanceof ServerWorld world) {
             AnnounceEntityDeathEvent.EVENT.invoker().announce(world, this, message);
         }
     }

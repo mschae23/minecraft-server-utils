@@ -32,7 +32,7 @@ public class PlayerTeamStorage {
         Entry entry = new Entry(team, formatting);
         this.entries.put(player.getEntityName(), entry);
 
-        for (ServerPlayerEntity other : player.getWorld().getPlayers()) {
+        for (ServerPlayerEntity other : player.getServerWorld().getPlayers()) {
             Entry otherEntry = this.entries.get(other.getEntityName());
 
             if (otherEntry != null) {
@@ -40,7 +40,7 @@ public class PlayerTeamStorage {
             }
         }
 
-        for (ServerPlayerEntity other : player.getWorld().getPlayers()) {
+        for (ServerPlayerEntity other : player.getServerWorld().getPlayers()) {
             if (other == player) {
                 continue;
             }
@@ -63,7 +63,7 @@ public class PlayerTeamStorage {
             entry.team.setColor(formatting);
         }
 
-        for (ServerPlayerEntity other : player.getWorld().getPlayers()) {
+        for (ServerPlayerEntity other : player.getServerWorld().getPlayers()) {
             other.networkHandler.sendPacket(TeamS2CPacket.updateTeam(entry.team, false));
         }
     }

@@ -71,7 +71,7 @@ public final class UnlockCommand {
                 locked.lock = lock;
                 locked.markDirty();
 
-                context.getSource().sendFeedback(Text.empty().append(Text.literal("Unlocked container at "))
+                context.getSource().sendFeedback(() -> Text.empty().append(Text.literal("Unlocked container at "))
                     .append(ModUtils.getCoordinateText(pos)).append("."), true);
                 return Command.SINGLE_SUCCESS;
             }

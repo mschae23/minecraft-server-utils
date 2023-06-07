@@ -119,7 +119,7 @@ public final class VoteCommand {
             result.append("\n").append(Text.literal("You do not have permission to vote.").styled(style -> style.withColor(Formatting.RED)));
         }
 
-        source.sendFeedback(result, false);
+        source.sendFeedback(() -> result, false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -162,7 +162,7 @@ public final class VoteCommand {
 
             vote.votes().put(playerUuid, optionIndex);
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Voted for ").append(vote.getFormattedName()).append("."), true);
             return Command.SINGLE_SUCCESS;
         }
@@ -181,7 +181,7 @@ public final class VoteCommand {
         if (voteOption.isPresent()) {
             Vote vote = voteOption.get();
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Added vote ").append(vote.getFormattedName()).append("."), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -206,7 +206,7 @@ public final class VoteCommand {
         boolean success = storage.removeVote(name);
 
         if (success) {
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Removed vote ").append(formattedName).append("."), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -243,7 +243,7 @@ public final class VoteCommand {
         boolean success = storage.startVote(name, source.getServer().getWorld(World.OVERWORLD).getTime());
 
         if (success) {
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Started vote ").append(storage.getStartedVote(name).map(StartedVote::getFormattedName).orElseGet(() -> FORMAT_NAME.apply(name)))
                 .append("."), true);
             return Command.SINGLE_SUCCESS;
@@ -359,7 +359,7 @@ public final class VoteCommand {
             if (vote.announceEnd()) {
                 source.getServer().getPlayerManager().broadcast(result, false);
             } else {
-                source.sendFeedback(result, true);
+                source.sendFeedback(() -> result, true);
             }
 
             storage.removeVote(name);
@@ -382,7 +382,7 @@ public final class VoteCommand {
             Vote vote = voteOption.get();
             vote.setDisplayName(ModUtils.createNodeParser(source.getPlayer()).parseText(displayName, PlaceholderContext.of(source).asParserContext()));
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Modified display name of vote ").append(vote.getFormattedName()).append(Text.literal(".")), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -411,7 +411,7 @@ public final class VoteCommand {
             VoteOption option = new VoteOption(optionName);
             vote.getOptions().add(option);
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Added option ").append(option.getFormattedName())
                 .append(" to vote ").append(vote.getFormattedName()).append(Text.literal(".")), true);
             return Command.SINGLE_SUCCESS;
@@ -442,7 +442,7 @@ public final class VoteCommand {
             VoteOption option = optionOption.get();
             vote.getOptions().removeIf(testOption -> testOption.getName().equals(optionName));
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Removed option ").append(option.getFormattedName())
                 .append(" from vote ").append(vote.getFormattedName()).append(Text.literal(".")), true);
             return Command.SINGLE_SUCCESS;
@@ -475,7 +475,7 @@ public final class VoteCommand {
             VoteOption option = optionOption.get();
             option.setDisplayName(ModUtils.createNodeParser(source.getPlayer()).parseText(displayName, PlaceholderContext.of(source).asParserContext()));
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Modified display name of option ").append(option.getFormattedName())
                 .append(" from vote ").append(vote.getFormattedName()).append(Text.literal(".")), true);
             return Command.SINGLE_SUCCESS;
@@ -499,7 +499,7 @@ public final class VoteCommand {
             Vote vote = voteOption.get();
             vote.setSecondsToLive(secondsToLive);
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Set seconds to live of vote ").append(vote.getFormattedName()).append(Text.literal(" to " + secondsToLive + ".")), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -522,7 +522,7 @@ public final class VoteCommand {
             Vote vote = voteOption.get();
             vote.setAnnounceEnd(announceEnd);
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Set announcement of vote ").append(vote.getFormattedName()).append(Text.literal(" end to " + announceEnd + ".")), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -545,7 +545,7 @@ public final class VoteCommand {
             Vote vote = voteOption.get();
             vote.setPermission(permission);
 
-            source.sendFeedback(Text.empty()
+            source.sendFeedback(() -> Text.empty()
                 .append("Set permission for vote ").append(vote.getFormattedName()).append(Text.literal(" to "))
                 .append(Text.literal(ServerUtilsMod.MODID + "." + ServerUtilsMod.getConfig().vote().permissionPrefix() + "." + permission).styled(style -> style.withColor(Formatting.GRAY))).append("."), true);
             return Command.SINGLE_SUCCESS;
@@ -574,7 +574,7 @@ public final class VoteCommand {
             result.append(Text.literal("\n - ")).append(vote.getFormattedName()).append(" ").append(vote.name());
         }
 
-        source.sendFeedback(result, false);
+        source.sendFeedback(() -> result, false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -600,7 +600,7 @@ public final class VoteCommand {
             result.append("\n - ").append(option.getFormattedName()).append(" ").append(option.getName());
         }
 
-        source.sendFeedback(result, false);
+        source.sendFeedback(() -> result, false);
         return Command.SINGLE_SUCCESS;
     }
 }

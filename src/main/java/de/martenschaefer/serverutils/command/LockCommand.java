@@ -65,7 +65,7 @@ public final class LockCommand {
                 ((LockPermissionHolder) locked.lock).setLockPermission(((LockPermissionHolder) lock).getLockPermission());
                 locked.markDirty();
 
-                context.getSource().sendFeedback(Text.empty().append(Text.literal("Locked container at "))
+                context.getSource().sendFeedback(() -> Text.empty().append(Text.literal("Locked container at "))
                     .append(ModUtils.getCoordinateText(pos)).append("."), true);
                 return Command.SINGLE_SUCCESS;
             }
@@ -90,7 +90,7 @@ public final class LockCommand {
                 locked.lock = lock;
                 locked.markDirty();
 
-                context.getSource().sendFeedback(Text.empty().append(Text.literal("Locked container at "))
+                context.getSource().sendFeedback(() -> Text.empty().append(Text.literal("Locked container at "))
                     .append(ModUtils.getCoordinateText(pos)).append("."), true);
                 return Command.SINGLE_SUCCESS;
             }
