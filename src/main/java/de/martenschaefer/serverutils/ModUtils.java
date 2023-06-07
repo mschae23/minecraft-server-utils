@@ -1,18 +1,24 @@
 package de.martenschaefer.serverutils;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.TeamMsgCommand;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
@@ -133,6 +139,40 @@ public final class ModUtils {
         Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
 
         manager.broadcast(loggedText, player -> decoratedMessage, false);
+    }
+
+    public static void sendPrivateMessageFromRedirect(ServerCommandSource source, Collection<ServerPlayerEntity> targets, SignedMessage message) {
+        MessageType.Parameters incomingParams = MessageType.params(MessageType.MSG_COMMAND_INCOMING, source);
+        Text decoratedIncomingMessage = ModUtils.decorateText(message.getContent(), source, incomingParams);
+
+        for(ServerPlayerEntity target : targets) {
+            MessageType.Parameters outgoingParams = MessageType.params(MessageType.MSG_COMMAND_OUTGOING, source)
+                .withTargetName(target.getDisplayName());
+            Text decoratedOutgoingMessage = ModUtils.decorateText(message.getContent(), source, outgoingParams);
+
+            source.sendMessage(decoratedOutgoingMessage);
+            target.sendMessage(decoratedIncomingMessage, false);
+        }
+    }
+
+    public static void sendTeamMessageFromRedirect(ServerCommandSource source, Entity senderEntity, Team team, List<ServerPlayerEntity> recipients, SignedMessage message) {
+        MutableText formattedTeamName = team.getDisplayName().copy().fillStyle(Style.EMPTY.withInsertion(team.getName()).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(team.getName()))));
+        Formatting teamColor = team.getColor();
+
+        if (teamColor != Formatting.RESET) {
+            formattedTeamName.formatted(teamColor);
+        }
+
+        formattedTeamName.fillStyle(TeamMsgCommand.STYLE);
+        MessageType.Parameters incomingParams = MessageType.params(MessageType.TEAM_MSG_COMMAND_INCOMING, source).withTargetName(formattedTeamName);
+        MessageType.Parameters outgoingParams = MessageType.params(MessageType.TEAM_MSG_COMMAND_OUTGOING, source).withTargetName(formattedTeamName);
+
+        Text decoratedIncomingMessage = ModUtils.decorateText(message.getContent(), source, incomingParams);
+        Text decoratedOutgoingMessage = ModUtils.decorateText(message.getContent(), source, outgoingParams);
+
+        for(ServerPlayerEntity target : recipients) {
+            target.sendMessage(target == senderEntity ? decoratedOutgoingMessage : decoratedIncomingMessage, false);
+        }
     }
 
     // Container Lock

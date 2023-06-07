@@ -6,3 +6,4 @@ accessible	field	net/minecraft/block/entity/LockableContainerBlockEntity	lock	Ln
 
 accessible	method	net/minecraft/server/PlayerManager	verify	(Lnet/minecraft/network/message/SignedMessage;)Z
 accessible field net/minecraft/server/MinecraftServer LOGGER Lorg/slf4j/Logger;
+accessible field net/minecraft/server/command/TeamMsgCommand STYLE Lnet/minecraft/text/Style;
