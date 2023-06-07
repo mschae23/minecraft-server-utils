@@ -19,11 +19,9 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.config.api.ConfigIo;
 import de.martenschaefer.config.api.ModConfig;
-import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
 import de.martenschaefer.serverutils.command.RegionCommand;
@@ -43,7 +41,12 @@ import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.luckperms.api.context.ContextCalculator;
+import net.luckperms.api.context.ContextConsumer;
+import net.luckperms.api.context.ContextSet;
+import net.luckperms.api.context.ImmutableContextSet;
 import net.luckperms.api.event.user.UserDataRecalculateEvent;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,6 +149,28 @@ public class ServerUtilsMod implements ModInitializer {
 
             Stream.concat(Stream.concat(commandPermissions, Arrays.stream(permissions)), regionPermissions)
                 .forEach(permission -> Permissions.check(source, MODID + permission));
+
+            ModUtils.getLuckPerms().getContextManager().registerCalculator(new ContextCalculator<ServerPlayerEntity>() {
+                @Override
+                public void calculate(@NotNull ServerPlayerEntity target, @NotNull ContextConsumer contextConsumer) {
+                }
+
+                @Override
+                public @NotNull ContextSet estimatePotentialContexts() {
+                    ImmutableContextSet.Builder builder = ImmutableContextSet.builder();
+                    builder.add("message_type", "chat");
+                    builder.add("message_type", "say_command");
+                    builder.add("message_type", "msg_command_incoming");
+                    builder.add("message_type", "msg_command_outgoing");
+                    builder.add("message_type", "team_msg_command_incoming");
+                    builder.add("message_type", "team_msg_command_outgoing");
+                    builder.add("message_type", "emote_command");
+                    builder.add("message_type", "default");
+                    builder.add("message_team", "true");
+                    builder.add("message_team", "false");
+                    return builder.build();
+                }
+            });
         });
 
         RegionPersistentState.init();

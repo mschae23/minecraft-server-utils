@@ -1,5 +1,6 @@
 package de.martenschaefer.serverutils;
 
+import java.util.Optional;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
 import net.minecraft.network.message.MessageType;
@@ -108,7 +109,7 @@ public final class ModUtils {
             return LuckPermsMessageDecorator.process(source.getPlayer(), message, params);
         } else {
             return LuckPermsMessageDecorator.processFromCommandSource(source, source.getDisplayName(), "", "", Formatting.RESET,
-                message, params, source.hasPermissionLevel(3));
+                message, params, Optional.empty(), source.hasPermissionLevel(3));
         }
     }
 
@@ -128,7 +129,7 @@ public final class ModUtils {
 
         boolean verified = manager.verify(message);
         Text decoratedMessage = LuckPermsMessageDecorator.processFromCommandSource(source, source.getDisplayName(), "", "", Formatting.RESET,
-            message.getContent(), params, source.hasPermissionLevel(3));
+            message.getContent(), params, Optional.empty(), source.hasPermissionLevel(3));
         Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
 
         manager.broadcast(loggedText, player -> decoratedMessage, false);
