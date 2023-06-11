@@ -1,12 +1,21 @@
 package de.martenschaefer.serverutils.command;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import de.martenschaefer.serverutils.ServerUtilsMod;
+import de.martenschaefer.serverutils.state.VotePersistentState;
+import de.martenschaefer.serverutils.state.VoteStorage;
+import de.martenschaefer.serverutils.vote.Vote;
+import de.martenschaefer.serverutils.vote.VoteOption;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class ServerUtilsCommand {
@@ -15,6 +24,46 @@ public final class ServerUtilsCommand {
     public static final String[] PERMISSIONS = new String[] {
         PERMISSION_ROOT,
         ".command." + ServerUtilsMod.MODID + ".vote",
+    };
+
+    private static final SuggestionProvider<ServerCommandSource> VOTE_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        VoteStorage storage = VotePersistentState.get(context.getSource().getServer()).getStorage();
+        Stream<String> votes = Stream.concat(storage.getVotes().keySet().stream(), storage.getStartedVotes().keySet().stream());
+
+        CommandSource.suggestMatching(votes, builder);
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<ServerCommandSource> UNSTARTED_VOTE_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        VoteStorage storage = VotePersistentState.get(context.getSource().getServer()).getStorage();
+        Set<String> votes = storage.getVotes().keySet();
+
+        CommandSource.suggestMatching(votes, builder);
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<ServerCommandSource> STARTED_VOTE_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        VoteStorage storage = VotePersistentState.get(context.getSource().getServer()).getStorage();
+        Set<String> votes = storage.getStartedVotes().keySet();
+
+        CommandSource.suggestMatching(votes, builder);
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<ServerCommandSource> VOTE_OPTION_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        VoteStorage storage = VotePersistentState.get(context.getSource().getServer()).getStorage();
+
+        try {
+            String voteName = StringArgumentType.getString(context, "name");
+            Optional<Vote> voteOption = storage.getUnstartedVote(voteName);
+
+            voteOption.ifPresent(vote ->
+                CommandSource.suggestMatching(vote.getOptions().stream().map(VoteOption::getName), builder));
+        } catch (IllegalArgumentException e) {
+            // Ignore
+        }
+
+        return builder.buildFuture();
     };
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
@@ -26,10 +75,10 @@ public final class ServerUtilsCommand {
                     .then(CommandManager.argument("name", StringArgumentType.word())
                         .executes(VoteCommand::executeAdd)))
                 .then(CommandManager.literal("remove")
-                    .then(CommandManager.argument("name", StringArgumentType.word())
+                    .then(CommandManager.argument("name", StringArgumentType.word()).suggests(VOTE_NAME_SUGGESTION_PROVIDER)
                         .executes(VoteCommand::executeRemove)))
                 .then(CommandManager.literal("modify")
-                    .then(CommandManager.argument("name", StringArgumentType.word())
+                    .then(CommandManager.argument("name", StringArgumentType.word()).suggests(UNSTARTED_VOTE_NAME_SUGGESTION_PROVIDER)
                         .then(CommandManager.literal("display_name")
                             .then(CommandManager.argument("display_name", StringArgumentType.greedyString())
                                 .executes(VoteCommand::executeModifyDisplayName)))
@@ -38,11 +87,11 @@ public final class ServerUtilsCommand {
                                 .then(CommandManager.argument("option_name", StringArgumentType.word())
                                     .executes(VoteCommand::executeModifyAddOption)))
                             .then(CommandManager.literal("remove")
-                                .then(CommandManager.argument("option_name", StringArgumentType.word())
+                                .then(CommandManager.argument("option_name", StringArgumentType.word()).suggests(VOTE_OPTION_NAME_SUGGESTION_PROVIDER)
                                     .executes(VoteCommand::executeModifyRemoveOption)))
                             .then(CommandManager.literal("modify")
                                 .then(CommandManager.literal("display_name")
-                                    .then(CommandManager.argument("option_name", StringArgumentType.word())
+                                    .then(CommandManager.argument("option_name", StringArgumentType.word()).suggests(VOTE_OPTION_NAME_SUGGESTION_PROVIDER)
                                         .then(CommandManager.argument("display_name", StringArgumentType.greedyString())
                                         .executes(VoteCommand::executeModifyOptionModifyDisplayName)))))
                             .then(CommandManager.literal("list")
@@ -57,10 +106,10 @@ public final class ServerUtilsCommand {
                             .then(CommandManager.argument("permission", StringArgumentType.string())
                                 .executes(VoteCommand::executeModifyPermission)))))
                 .then(CommandManager.literal("start")
-                    .then(CommandManager.argument("name", StringArgumentType.word())
+                    .then(CommandManager.argument("name", StringArgumentType.word()).suggests(UNSTARTED_VOTE_NAME_SUGGESTION_PROVIDER)
                         .executes(VoteCommand::executeStart)))
                 .then(CommandManager.literal("end")
-                    .then(CommandManager.argument("name", StringArgumentType.word())
+                    .then(CommandManager.argument("name", StringArgumentType.word()).suggests(STARTED_VOTE_NAME_SUGGESTION_PROVIDER)
                         .executes(VoteCommand::executeEnd)))
                 .then(CommandManager.literal("list")
                     .executes(VoteCommand::executeList))));

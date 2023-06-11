@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
@@ -32,6 +33,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
@@ -66,13 +68,38 @@ public final class VoteCommand {
     private static final DynamicCommandExceptionType ALREADY_VOTED_EXCEPTION = new DynamicCommandExceptionType(name -> Text.empty()
         .append("You already voted for ").append((Text) name).append("."));
 
+    private static final SuggestionProvider<ServerCommandSource> VOTE_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        Map<String, StartedVote> startedVotes = VotePersistentState.get(context.getSource().getServer()).getStorage().getStartedVotes();
+
+        CommandSource.suggestMatching(startedVotes.entrySet().stream()
+            .filter(entry -> entry.getValue().permission().isEmpty() || Permissions.check(context.getSource(), ServerUtilsMod.MODID + "." + ServerUtilsMod.getConfig().vote().permissionPrefix() + "." + entry.getValue().permission()))
+            .map(Map.Entry::getKey), builder);
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<ServerCommandSource> VOTE_OPTION_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        VoteStorage storage = VotePersistentState.get(context.getSource().getServer()).getStorage();
+
+        try {
+            String voteName = StringArgumentType.getString(context, "name");
+            Optional<StartedVote> voteOption = storage.getStartedVote(voteName);
+
+            voteOption.filter(vote -> vote.permission().isEmpty() || Permissions.check(context.getSource(), ServerUtilsMod.MODID + "." + ServerUtilsMod.getConfig().vote().permissionPrefix() + "." + vote.permission()))
+                .ifPresent(vote -> CommandSource.suggestMatching(vote.options().stream().map(VoteOption::getName), builder));
+        } catch (IllegalArgumentException e) {
+            // Ignore
+        }
+
+        return builder.buildFuture();
+    };
+
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("vote")
             .requires(Permissions.require(ServerUtilsMod.MODID + PERMISSION_ROOT, true))
             // TODO Create VoteArgumentType and VoteOptionArgumentType (if possible)
-            .then(CommandManager.argument("name", StringArgumentType.word())
+            .then(CommandManager.argument("name", StringArgumentType.word()).suggests(VOTE_NAME_SUGGESTION_PROVIDER)
                 .executes(VoteCommand::executeVoteList)
-                .then(CommandManager.argument("option_name", StringArgumentType.word())
+                .then(CommandManager.argument("option_name", StringArgumentType.word()).suggests(VOTE_OPTION_NAME_SUGGESTION_PROVIDER)
                     .requires(ServerCommandSource::isExecutedByPlayer)
                     .executes(VoteCommand::executeVote))));
     }
@@ -96,7 +123,7 @@ public final class VoteCommand {
         List<VoteOption> options = vote.options();
 
         MutableText result = Text.empty().append("Options in vote ").append(Texts.bracketed(Text.empty()
-            .append(vote.displayName()).styled(style -> style.withColor(Formatting.RESET))).styled(style -> style.withColor(Formatting.GRAY)))
+                .append(vote.displayName()).styled(style -> style.withColor(Formatting.RESET))).styled(style -> style.withColor(Formatting.GRAY)))
             .append(":");
 
         if (!options.isEmpty()) {

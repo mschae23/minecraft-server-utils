@@ -33,8 +33,8 @@ public class VotePersistentState extends PersistentState {
     @Override
     public NbtCompound writeNbt(NbtCompound root) {
         VoteStorage.CODEC.encodeStart(NbtOps.INSTANCE, this.storage)
-            .result().ifPresentOrElse(result -> root.put("vote_storage", result),
-                () -> ServerUtilsMod.LOGGER.error("Error writing vote data as persistent state"));
+            .get().ifLeft(result -> root.put("vote_storage", result))
+            .ifRight(partial -> ServerUtilsMod.LOGGER.error("Error writing vote data as persistent state: " + partial.message()));
         return root;
     }
 

@@ -67,7 +67,8 @@ public class RegionPersistentState extends PersistentState {
 
         for (RegionV2 region : this.regions) {
             var result = RegionV2.REGION_CODEC.encodeStart(NbtOps.INSTANCE, region);
-            result.result().ifPresent(regions::add);
+            result.get().ifLeft(regions::add)
+                .ifRight(partial -> ServerUtilsMod.LOGGER.error("Error writing region data as persistent state: " + partial.message()));
         }
 
         root.put("regions", regions);
@@ -82,15 +83,16 @@ public class RegionPersistentState extends PersistentState {
         for (NbtElement regionElement : regions) {
             RegionV2.REGION_CODEC.decode(NbtOps.INSTANCE, regionElement)
                 .map(Pair::getFirst)
-                .result()
-                .map(ModConfig::latest)
-                .ifPresentOrElse(regionState::addRegion, () ->
+                .get()
+                .mapLeft(ModConfig::latest)
+                .ifLeft(regionState::addRegion)
+                .ifRight(partial ->
                     // Fallback to old region format
                     RegionV1.OLD_CODEC.decode(NbtOps.INSTANCE, regionElement)
                         .map(Pair::getFirst)
-                        .result()
-                        .map(RegionV1::latest)
-                        .ifPresent(regionState::addRegion)
+                        .get()
+                        .ifLeft(RegionV1::latest)
+                        .ifRight(partialOld -> ServerUtilsMod.LOGGER.error("Error reading region data as persistent state: " + partial.message()))
                 );
         }
 
