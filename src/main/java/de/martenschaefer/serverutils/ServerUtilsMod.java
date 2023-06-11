@@ -4,6 +4,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -16,6 +17,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.GlobalPos;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -28,12 +30,14 @@ import de.martenschaefer.serverutils.command.RegionCommand;
 import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
+import de.martenschaefer.serverutils.command.argument.ProtectionRuleArgumentType;
+import de.martenschaefer.serverutils.command.argument.TriStateArgumentType;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
-import de.martenschaefer.serverutils.region.Region;
+import de.martenschaefer.serverutils.region.RegionV2;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
@@ -125,6 +129,9 @@ public class ServerUtilsMod implements ModInitializer {
             RegionCommand.register(dispatcher);
         });
 
+        // ArgumentTypeRegistry.registerArgumentType(id("protection_rule"), ProtectionRuleArgumentType.class, ConstantArgumentSerializer.of(ProtectionRuleArgumentType::protectionRule));
+        // ArgumentTypeRegistry.registerArgumentType(id("tristate"), TriStateArgumentType.class, ConstantArgumentSerializer.of(TriStateArgumentType::triState));
+
         // Check permissions on the server once, so that they are registered and can be auto-completed
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             CommandSource source = server.getCommandSource();
@@ -144,7 +151,7 @@ public class ServerUtilsMod implements ModInitializer {
             };
 
             Stream<String> regionPermissions = RegionPersistentState.get(server).getRegions().stream()
-                .map(Region::key).flatMap(name -> Arrays.stream(RegionRuleEnforcer.RULES)
+                .map(RegionV2::key).flatMap(name -> Arrays.stream(RegionRuleEnforcer.RULES)
                     .map(rule -> RegionRuleEnforcer.getBasePermission(name, rule)));
 
             Stream.concat(Stream.concat(commandPermissions, Arrays.stream(permissions)), regionPermissions)

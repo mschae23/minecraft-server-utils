@@ -10,8 +10,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
+import de.martenschaefer.serverutils.region.v1.RegionV1;
 import com.mojang.datafixers.util.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,24 +27,24 @@ public class RegionPersistentState extends PersistentState {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public boolean addRegion(Region region) {
+    public boolean addRegion(RegionV2 region) {
         return this.regions.add(region);
     }
 
-    public boolean removeRegion(Region region) {
+    public boolean removeRegion(RegionV2 region) {
         return this.removeRegion(region.key()) != null;
     }
 
-    public Region removeRegion(String key) {
+    public RegionV2 removeRegion(String key) {
         return this.regions.remove(key);
     }
 
-    public void replaceRegion(Region from, Region to) {
+    public void replaceRegion(RegionV2 from, RegionV2 to) {
         this.regions.replace(from, to);
     }
 
     @Nullable
-    public Region getRegionByKey(String key) {
+    public RegionV2 getRegionByKey(String key) {
         return this.regions.byKey(key);
     }
 
@@ -55,7 +57,7 @@ public class RegionPersistentState extends PersistentState {
         return this.regions;
     }
 
-    public Stream<Region> findRegion(ProtectionContext context) {
+    public Stream<RegionV2> findRegion(ProtectionContext context) {
         return this.getRegions().findRegion(context);
     }
 
@@ -63,8 +65,8 @@ public class RegionPersistentState extends PersistentState {
     public NbtCompound writeNbt(NbtCompound root) {
         NbtList regions = new NbtList();
 
-        for (Region region : this.regions) {
-            var result = Region.CODEC.encodeStart(NbtOps.INSTANCE, region);
+        for (RegionV2 region : this.regions) {
+            var result = RegionV2.REGION_CODEC.encodeStart(NbtOps.INSTANCE, region);
             result.result().ifPresent(regions::add);
         }
 
@@ -78,10 +80,18 @@ public class RegionPersistentState extends PersistentState {
         NbtList regions = root.getList("regions", NbtElement.COMPOUND_TYPE);
 
         for (NbtElement regionElement : regions) {
-            Region.CODEC.decode(NbtOps.INSTANCE, regionElement)
+            RegionV2.REGION_CODEC.decode(NbtOps.INSTANCE, regionElement)
                 .map(Pair::getFirst)
                 .result()
-                .ifPresent(regionState::addRegion);
+                .map(ModConfig::latest)
+                .ifPresentOrElse(regionState::addRegion, () ->
+                    // Fallback to old region format
+                    RegionV1.OLD_CODEC.decode(NbtOps.INSTANCE, regionElement)
+                        .map(Pair::getFirst)
+                        .result()
+                        .map(RegionV1::latest)
+                        .ifPresent(regionState::addRegion)
+                );
         }
 
         return regionState;

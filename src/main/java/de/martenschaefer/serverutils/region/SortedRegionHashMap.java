@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SortedRegionHashMap implements RegionMap {
-    private final SortedSet<Region> regions = new ObjectRBTreeSet<>();
-    private final Object2ObjectMap<String, Region> byKey = new Object2ObjectOpenHashMap<>();
+    private final SortedSet<RegionV2> regions = new ObjectRBTreeSet<>();
+    private final Object2ObjectMap<String, RegionV2> byKey = new Object2ObjectOpenHashMap<>();
 
     @Override
     public void clear() {
@@ -23,7 +23,7 @@ public final class SortedRegionHashMap implements RegionMap {
     }
 
     @Override
-    public boolean add(Region region) {
+    public boolean add(RegionV2 region) {
         if (this.byKey.put(region.key(), region) == null) {
             this.regions.add(region);
             return true;
@@ -32,7 +32,7 @@ public final class SortedRegionHashMap implements RegionMap {
     }
 
     @Override
-    public boolean replace(Region from, Region to) {
+    public boolean replace(RegionV2 from, RegionV2 to) {
         if (from.key().equals(to.key()) && this.byKey.replace(from.key(), from, to)) {
             this.regions.remove(from);
             this.regions.add(to);
@@ -43,7 +43,7 @@ public final class SortedRegionHashMap implements RegionMap {
 
     @Override
     @Nullable
-    public Region remove(String key) {
+    public RegionV2 remove(String key) {
         var authority = this.byKey.remove(key);
         if (authority != null) {
             this.regions.remove(authority);
@@ -54,7 +54,7 @@ public final class SortedRegionHashMap implements RegionMap {
 
     @Override
     @Nullable
-    public Region byKey(String key) {
+    public RegionV2 byKey(String key) {
         return this.byKey.get(key);
     }
 
@@ -69,12 +69,12 @@ public final class SortedRegionHashMap implements RegionMap {
     }
 
     @Override
-    public Iterable<Object2ObjectMap.Entry<String, Region>> entries() {
+    public Iterable<Object2ObjectMap.Entry<String, RegionV2>> entries() {
         return Object2ObjectMaps.fastIterable(this.byKey);
     }
 
     @Override
-    public Stream<Region> findRegion(ProtectionContext context) {
+    public Stream<RegionV2> findRegion(ProtectionContext context) {
         return this.regions.stream().filter(region -> region.shapes().test(context));
     }
 
@@ -90,12 +90,12 @@ public final class SortedRegionHashMap implements RegionMap {
 
     @Override
     @NotNull
-    public Iterator<Region> iterator() {
+    public Iterator<RegionV2> iterator() {
         return this.regions.iterator();
     }
 
     @Override
-    public Stream<Region> stream() {
+    public Stream<RegionV2> stream() {
         return this.regions.stream();
     }
 }

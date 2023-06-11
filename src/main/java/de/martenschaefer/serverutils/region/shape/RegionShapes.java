@@ -87,7 +87,7 @@ public class RegionShapes {
             return Text.literal("  Empty").formatted(Formatting.YELLOW);
         }
 
-        MutableText text = Text.literal("");
+        MutableText text = Text.empty();
         for (int i = 0; i < this.entries.length; i++) {
             Entry entry = this.entries[i];
 

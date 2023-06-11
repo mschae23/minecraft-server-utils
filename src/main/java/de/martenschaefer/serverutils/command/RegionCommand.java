@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.registry.RegistryKey;
@@ -14,13 +15,17 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.ServerUtilsMod;
-import de.martenschaefer.serverutils.region.Region;
+import de.martenschaefer.serverutils.region.RegionMap;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
+import de.martenschaefer.serverutils.region.RegionV2;
+import de.martenschaefer.serverutils.region.rule.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import de.martenschaefer.serverutils.region.shape.ProtectionShape;
 import de.martenschaefer.serverutils.region.shape.RegionShapes;
+import de.martenschaefer.serverutils.util.StringTriState;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.LiteralMessage;
@@ -29,6 +34,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class RegionCommand {
@@ -36,6 +42,17 @@ public final class RegionCommand {
         new LiteralMessage("Region with the id '" + id + "' already exists"));
     private static final DynamicCommandExceptionType REGION_DOES_NOT_EXIST_EXCEPTION = new DynamicCommandExceptionType(id ->
         new LiteralMessage("Region with the id '" + id + "' does not exist"));
+    private static final DynamicCommandExceptionType RULE_DOES_NOT_EXIST_EXCEPTION = new DynamicCommandExceptionType(name ->
+        new LiteralMessage("Protection rule '" + name + "' does not exist"));
+    private static final DynamicCommandExceptionType TRISTATE_DOES_NOT_EXIST_EXCEPTION = new DynamicCommandExceptionType(name ->
+        new LiteralMessage("Protection rule value '" + name + "' does not exist"));
+
+    private static final SuggestionProvider<ServerCommandSource> REGION_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        RegionMap regions = RegionPersistentState.get(context.getSource().getServer()).getRegions();
+
+        CommandSource.suggestMatching(regions.stream().map(RegionV2::key), builder);
+        return builder.buildFuture();
+    };
 
     public static final String PERMISSION_ROOT = ".command.region.root";
 
@@ -58,20 +75,20 @@ public final class RegionCommand {
                     .then(CommandManager.literal("with")
                         .then(CommandManager.literal("universe")
                             .executes(RegionCommand::executeAddWithUniverse))
-                        .then(CommandManager.literal("dimension")
-                            .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
-                                .executes(RegionCommand::executeAddWithDimension)))
-                        .then(CommandManager.literal("pos")
-                            .then(CommandManager.argument("min", BlockPosArgumentType.blockPos())
-                                .then(CommandManager.argument("max", BlockPosArgumentType.blockPos())
-                                    .executes(RegionCommand::executeAddWithLocalBox)))))))
+                            .then(CommandManager.literal("dimension")
+                                .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
+                                    .executes(RegionCommand::executeAddWithDimension)))
+                            .then(CommandManager.literal("pos")
+                                .then(CommandManager.argument("min", BlockPosArgumentType.blockPos())
+                                    .then(CommandManager.argument("max", BlockPosArgumentType.blockPos())
+                                        .executes(RegionCommand::executeAddWithLocalBox)))))))
             .then(CommandManager.literal("remove")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.remove", true))
-                .then(CommandManager.argument("name", StringArgumentType.word())
+                .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
                     .executes(RegionCommand::executeRemove)))
             .then(CommandManager.literal("modify")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.modify", true))
-                .then(CommandManager.argument("name", StringArgumentType.word())
+                .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
                     .then(CommandManager.literal("shape")
                         .then(CommandManager.literal("replace")
                             .then(CommandManager.literal("with")
@@ -86,10 +103,24 @@ public final class RegionCommand {
                                             .executes(RegionCommand::executeModifyReplaceShapeWithLocalBox)))))))
                     .then(CommandManager.literal("level")
                         .then(CommandManager.argument("level", IntegerArgumentType.integer())
-                            .executes(RegionCommand::executeModifyLevel)))))
+                            .executes(RegionCommand::executeModifyLevel)))
+                    .then(CommandManager.literal("rule")
+                        .then(CommandManager.literal("set")
+                            .then(CommandManager.argument("rule_name", StringArgumentType.word()).suggests((context, builder) -> {
+                                ProtectionRule[] rules = ProtectionRule.values();
+
+                                CommandSource.suggestMatching(Arrays.stream(rules).map(ProtectionRule::asString), builder);
+                                return builder.buildFuture();
+                            })
+                                .then(CommandManager.argument("rule_value", StringArgumentType.word()).suggests((context, builder) -> {
+                                    StringTriState[] states = StringTriState.values();
+
+                                    CommandSource.suggestMatching(Arrays.stream(states).map(StringTriState::asString), builder);
+                                    return builder.buildFuture();
+                                }).executes(RegionCommand::executeModifySetRule)))))))
             .then(CommandManager.literal("info")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.info", true))
-                .then(CommandManager.argument("name", StringArgumentType.word())
+                .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
                     .executes(RegionCommand::executeInfo)))
             .then(CommandManager.literal("test")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.test").and(ServerCommandSource::isExecutedByPlayer))
@@ -115,12 +146,12 @@ public final class RegionCommand {
         return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.box(dimension, min, max)));
     }
 
-    private static int addRegion(CommandContext<ServerCommandSource> context, UnaryOperator<Region> operator) throws CommandSyntaxException {
+    private static int addRegion(CommandContext<ServerCommandSource> context, UnaryOperator<RegionV2> operator) throws CommandSyntaxException {
         String key = StringArgumentType.getString(context, "name");
 
         ServerCommandSource source = context.getSource();
         RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
-        Region region = operator.apply(Region.create(key));
+        RegionV2 region = operator.apply(RegionV2.create(key));
 
         if (regionState.addRegion(region)) {
             // Check permissions for every rule once, for LuckPerms command auto-completion
@@ -152,7 +183,7 @@ public final class RegionCommand {
 
         ServerCommandSource source = context.getSource();
         RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
-        Region region = regionState.removeRegion(key);
+        RegionV2 region = regionState.removeRegion(key);
 
         if (region != null) {
             source.sendFeedback(() -> Text.literal("Removed region '" + key + "'"), true);
@@ -183,29 +214,45 @@ public final class RegionCommand {
         return modifyRegion(context, region -> region.withLevel(level));
     }
 
+    private static int executeModifySetRule(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        String ruleString = StringArgumentType.getString(context, "rule_name");
+        String stateString = StringArgumentType.getString(context, "rule_value");
+        ProtectionRule rule = ProtectionRule.byName(ruleString);
+        TriState value = StringTriState.byName(stateString);
+
+        if (rule == null) {
+            throw RULE_DOES_NOT_EXIST_EXCEPTION.create(ruleString);
+        } else if (value == null) {
+            throw TRISTATE_DOES_NOT_EXIST_EXCEPTION.create(stateString);
+        }
+
+        return modifyRegion(context, region -> region.withRule(rule, value));
+    }
+
     private static int executeInfo(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String key = StringArgumentType.getString(context, "name");
 
         ServerCommandSource source = context.getSource();
         RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
-        Region region = regionState.getRegionByKey(key);
+        RegionV2 region = regionState.getRegionByKey(key);
 
         if (region != null) {
             source.sendFeedback(() -> Text.literal("Region '" + key + "':")
                 .append("\n Level: ").append(String.valueOf(region.level()))
-                .append("\n Shape:\n").append(region.shapes().displayList()), false);
+                .append("\n Shape:\n").append(region.shapes().displayList())
+                .append("\n Rules:\n").append(region.rulesForDisplay()), false);
             return Command.SINGLE_SUCCESS;
         } else {
             throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
         }
     }
 
-    private static int modifyRegion(CommandContext<ServerCommandSource> context, UnaryOperator<Region> operator) throws CommandSyntaxException {
+    private static int modifyRegion(CommandContext<ServerCommandSource> context, UnaryOperator<RegionV2> operator) throws CommandSyntaxException {
         String key = StringArgumentType.getString(context, "name");
 
         ServerCommandSource source = context.getSource();
         RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
-        Region region = regionState.getRegionByKey(key);
+        RegionV2 region = regionState.getRegionByKey(key);
 
         if (region != null) {
             regionState.replaceRegion(region, operator.apply(region));
@@ -224,7 +271,7 @@ public final class RegionCommand {
         source.sendFeedback(() -> Text.empty()
             .append(Text.literal("Regions:\n"))
             .append(Text.literal(regionState.getRegions().stream()
-                .map(Region::key).map(key -> " - " + key)
+                .map(RegionV2::key).map(key -> " - " + key)
                 .collect(Collectors.joining("\n")))), false);
 
         return Command.SINGLE_SUCCESS;
@@ -237,12 +284,12 @@ public final class RegionCommand {
         Vec3d pos = context.getSource().getPosition();
         ProtectionContext protectionContext = new ProtectionContext(dimension, pos);
 
-        Stream<Region> possibleRegions = regionState.findRegion(protectionContext);
+        Stream<RegionV2> possibleRegions = regionState.findRegion(protectionContext);
 
         source.sendFeedback(() -> Text.empty()
             .append(Text.literal("Regions:\n"))
             .append(Text.literal(possibleRegions
-                .map(Region::key).map(key -> " - " + key)
+                .map(RegionV2::key).map(key -> " - " + key)
                 .collect(Collectors.joining("\n")))), false);
 
         return Command.SINGLE_SUCCESS;

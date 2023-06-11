@@ -24,6 +24,8 @@
     "region.BlockItemMixin",
     "region.EndPortalBlockMixin",
     "region.EntityMixin",
+    "region.FindPointOfInterestTaskMixin",
+    "region.ForgetCompletedPointOfInterestTaskMixin",
     "region.PlayerEntityMixin",
     "region.ServerPlayerInteractionManagerMixin",
     "region.ServerWorldMixin",
