@@ -3,6 +3,7 @@ package de.martenschaefer.serverutils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
@@ -23,6 +24,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.chat.LuckPermsMessageDecorator;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import de.martenschaefer.serverutils.holder.LockPermissionHolder;
@@ -36,6 +38,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
+import net.luckperms.api.util.Tristate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +63,7 @@ public final class ModUtils {
 
     public static void sendMessage(ServerPlayerEntity player, Text text, boolean inPublicChat) {
         if (inPublicChat) {
-            MinecraftServer server = player.getWorld().getServer();
+            MinecraftServer server = player.getServerWorld().getServer();
             server.getPlayerManager().broadcast(text, false);
         } else {
             player.sendMessage(text, false);
@@ -200,6 +203,20 @@ public final class ModUtils {
         } else {
             return Permissions.check(player, getLockPermission(config, lockPermission)) && lock.canOpen(player.getMainHandStack());
         }
+    }
+
+    // General utils
+
+    public static TriState toFabricTriState(Tristate state) {
+        return switch (state) {
+            case TRUE -> TriState.TRUE;
+            case FALSE -> TriState.FALSE;
+            case UNDEFINED -> TriState.DEFAULT;
+        };
+    }
+
+    public static TriState orTriState(TriState state, Supplier<TriState> other) {
+        return state == TriState.DEFAULT ? other.get() : state;
     }
 
     public static LuckPerms getLuckPerms() {

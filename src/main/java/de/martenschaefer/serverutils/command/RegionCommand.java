@@ -1,21 +1,24 @@
 package de.martenschaefer.serverutils.command;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.util.TriState;
+import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionMap;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
@@ -36,6 +39,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.luckperms.api.cacheddata.CachedPermissionData;
 
 public final class RegionCommand {
     private static final DynamicCommandExceptionType REGION_ALREADY_EXISTS_EXCEPTION = new DynamicCommandExceptionType(id ->
@@ -124,7 +128,11 @@ public final class RegionCommand {
                     .executes(RegionCommand::executeInfo)))
             .then(CommandManager.literal("test")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.test").and(ServerCommandSource::isExecutedByPlayer))
-                .executes(RegionCommand::executeTest))
+                .executes(RegionCommand::executeTest)
+                .then(CommandManager.literal("player")
+                    .executes(RegionCommand::executeTest))
+                .then(CommandManager.literal("generic")
+                    .executes(RegionCommand::executeTestGeneric)))
             .then(CommandManager.literal("list")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.list", true))
                 .executes(RegionCommand::executeList)));
@@ -277,20 +285,57 @@ public final class RegionCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int executeTest(CommandContext<ServerCommandSource> context) {
+    private static int executeTest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return executeTestInternal(context, true);
+    }
+
+    private static int executeTestGeneric(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return executeTestInternal(context, false);
+    }
+
+    private static int executeTestInternal(CommandContext<ServerCommandSource> context, boolean player) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
+        ServerPlayerEntity playerEntity = source.getPlayerOrThrow();
+        CachedPermissionData permissionData = ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(playerEntity);
         RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
         RegistryKey<World> dimension = context.getSource().getWorld().getRegistryKey();
         Vec3d pos = context.getSource().getPosition();
         ProtectionContext protectionContext = new ProtectionContext(dimension, pos);
 
-        Stream<RegionV2> possibleRegions = regionState.findRegion(protectionContext);
+        List<RegionV2> possibleRegions = regionState.findRegion(protectionContext).toList();
+
+        MutableText rulesText = Text.empty();
+
+        for (ProtectionRule rule : ProtectionRule.values()) {
+            TriState state = TriState.DEFAULT;
+            RegionV2 responsibleRegion = null;
+
+            for (RegionV2 region : possibleRegions) {
+                state = player ? ModUtils.toFabricTriState(permissionData.checkPermission(
+                    RegionRuleEnforcer.getPermission(region.key(), rule.getName()))) : TriState.DEFAULT;
+                state = !player || state == TriState.DEFAULT ? region.getRule(rule) : state;
+
+                if (state != TriState.DEFAULT) {
+                    responsibleRegion = region;
+                    break;
+                }
+            }
+
+            if (state != TriState.DEFAULT) {
+                StringTriState stringState = StringTriState.from(state);
+
+                rulesText.append("\n ").append(Text.literal(rule.getName()).formatted(Formatting.AQUA))
+                    .append(": ").append(Text.literal(stringState.asString()).formatted(stringState.getFormatting()))
+                    .append(" (").append(responsibleRegion.key()).append(")");
+            }
+        }
 
         source.sendFeedback(() -> Text.empty()
-            .append(Text.literal("Regions:\n"))
-            .append(Text.literal(possibleRegions
+            .append("Regions:\n")
+            .append(Text.literal(possibleRegions.stream()
                 .map(RegionV2::key).map(key -> " - " + key)
-                .collect(Collectors.joining("\n")))), false);
+                .collect(Collectors.joining("\n"))))
+            .append("\n\nRules:").append(rulesText), false);
 
         return Command.SINGLE_SUCCESS;
     }

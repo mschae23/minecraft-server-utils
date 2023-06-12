@@ -63,7 +63,7 @@ public record RegionV2(String key, int level, RegionShapes shapes, Reference2Ref
         return new RegionV2(this.key, this.level, this.shapes, rules);
     }
 
-    public TriState getDefault(ProtectionRule rule) {
+    public TriState getRule(ProtectionRule rule) {
         return this.rules.getOrDefault(rule, TriState.DEFAULT);
     }
 

@@ -1,5 +1,6 @@
 package de.martenschaefer.serverutils.region;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -21,22 +22,11 @@ import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.rule.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
-import de.martenschaefer.serverutils.util.ServerUtilsUtils;
 
 public final class RegionRuleEnforcer {
     private static final Text DENIED_TEXT = Text.literal("You cannot do that in this region!");
 
-    public static final String[] RULES = new String[] {
-        "block.break",
-        "block.place",
-        "block.use",
-        "item.use",
-        "world.modify",
-        "portal.nether.use",
-        "portal.end.use",
-        "villager.work",
-        "villager.home",
-    };
+    public static final String[] RULES = Arrays.stream(ProtectionRule.values()).map(ProtectionRule::getName).toArray(String[]::new);
 
     private RegionRuleEnforcer() {
     }
@@ -125,19 +115,19 @@ public final class RegionRuleEnforcer {
         return ".region." + key + "." + action;
     }
 
-    private static String getPermission(String key, String action) {
-        return ServerUtilsMod.MODID + ".region." + key + "." + action;
+    public static String getPermission(String key, String rule) {
+        return ServerUtilsMod.MODID + ".region." + key + "." + rule;
     }
 
     private static boolean checkPermission(ServerPlayerEntity player, Stream<RegionV2> regions, ProtectionRule rule) {
         return regions
-            .map(region -> ServerUtilsUtils.orTriState(ServerUtilsUtils.toFabricTriState(ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(player)
-                .checkPermission(getPermission(region.key(), rule.getName()))), region.getDefault(rule)))
+            .map(region -> ModUtils.orTriState(ModUtils.toFabricTriState(ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(player)
+                .checkPermission(getPermission(region.key(), rule.getName()))), () -> region.getRule(rule)))
             .filter(state -> state != TriState.DEFAULT).findFirst().orElse(TriState.TRUE).get();
     }
 
     private static boolean checkPermissionGeneric(Stream<RegionV2> regions, ProtectionRule rule) {
-        return regions.map(region -> region.getDefault(rule))
+        return regions.map(region -> region.getRule(rule))
             .filter(state -> state != TriState.DEFAULT).findFirst().orElse(TriState.TRUE).get();
     }
 
