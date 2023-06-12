@@ -4,7 +4,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -17,7 +16,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.GlobalPos;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -30,16 +28,14 @@ import de.martenschaefer.serverutils.command.RegionCommand;
 import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
-import de.martenschaefer.serverutils.command.argument.ProtectionRuleArgumentType;
-import de.martenschaefer.serverutils.command.argument.TriStateArgumentType;
 import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
-import de.martenschaefer.serverutils.region.RegionV2;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
+import de.martenschaefer.serverutils.region.RegionV2;
 import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
 import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import com.mojang.serialization.Codec;
@@ -77,42 +73,35 @@ public class ServerUtilsMod implements ModInitializer {
         ServerUtilsRegistries.init();
         ProtectionShapeType.init();
 
-        var config = getConfig();
+        // Death Coordinates
+        ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
+            var config = getConfig();
 
-        // if (config.chat().enabled()) {
-        //     // Message Decorator for prefixes, suffixes and username colors
-        //     ServerMessageDecoratorEvent.EVENT.register(ServerMessageDecoratorEvent.STYLING_PHASE, new LuckPermsMessageDecorator());
-        // }
+            if (alive || !Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", config.deathCoords().enabled())) {
+                return;
+            }
 
-        if (config.deathCoords().enabled()) {
-            // Death Coordinates
-            ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-                if (alive || !Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", true)) {
-                    return;
-                }
+            boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public", config.deathCoords().inPublicChat());
+            GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getWorld().getRegistryKey(), oldPlayer.getBlockPos()));
 
-                boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public", config.deathCoords().inPublicChat());
-                GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getWorld().getRegistryKey(), oldPlayer.getBlockPos()));
+            MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))
+                .append(ModUtils.getCoordinateText(deathPos.getPos()));
 
-                MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))
-                    .append(ModUtils.getCoordinateText(deathPos.getPos()));
+            if (newPlayer.getLastDeathPos().isPresent()) {
+                text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW));
+            }
 
-                if (newPlayer.getLastDeathPos().isPresent()) {
-                    text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW));
-                }
+            if (inPublicChat) {
+                // If in_public_chat is true, send message to everyone
+                newPlayer.getServerWorld().getServer().getPlayerManager().broadcast(text, false);
+            }
 
-                if (inPublicChat) {
-                    // If in_public_chat is true, send message to everyone
-                    newPlayer.getServerWorld().getServer().getPlayerManager().broadcast(text, false);
-                }
-
-                // Otherwise, send it to the player directly.
-                // Because COPY_FROM is called in a state where neither the old nor new player are in the
-                // player manager's "players" list, the message needs to be manually sent to the player that died
-                // even if in_public_chat is true.
-                newPlayer.sendMessage(text, false);
-            });
-        }
+            // Otherwise, send it to the player directly.
+            // Because COPY_FROM is called in a state where neither the old nor new player are in the
+            // player manager's "players" list, the message needs to be manually sent to the player that died
+            // even if in_public_chat is true.
+            newPlayer.sendMessage(text, false);
+        });
 
         AnnounceEntityDeathEvent.EVENT.register((world, entity, message) -> {
             world.getServer().getPlayerManager().broadcast(message, false);
@@ -182,6 +171,7 @@ public class ServerUtilsMod implements ModInitializer {
 
         RegionPersistentState.init();
 
+        //noinspection resource
         ServerLifecycleEvents.SERVER_STARTED.register(server ->
             ModUtils.getLuckPerms().getEventBus().subscribe(UserDataRecalculateEvent.class, event -> onUserDataRecalculate(server, event)));
     }
