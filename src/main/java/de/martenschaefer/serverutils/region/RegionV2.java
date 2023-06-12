@@ -6,7 +6,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.config.api.ModConfig;
-import de.martenschaefer.serverutils.region.rule.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionShape;
 import de.martenschaefer.serverutils.region.shape.RegionShapes;
 import de.martenschaefer.serverutils.util.StringTriState;

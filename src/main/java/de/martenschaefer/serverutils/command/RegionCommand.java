@@ -24,7 +24,7 @@ import de.martenschaefer.serverutils.region.RegionMap;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import de.martenschaefer.serverutils.region.RegionV2;
-import de.martenschaefer.serverutils.region.rule.ProtectionRule;
+import de.martenschaefer.serverutils.region.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import de.martenschaefer.serverutils.region.shape.ProtectionShape;
 import de.martenschaefer.serverutils.region.shape.RegionShapes;
@@ -127,7 +127,7 @@ public final class RegionCommand {
                 .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
                     .executes(RegionCommand::executeInfo)))
             .then(CommandManager.literal("test")
-                .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.test").and(ServerCommandSource::isExecutedByPlayer))
+                .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.test", true).and(ServerCommandSource::isExecutedByPlayer))
                 .executes(RegionCommand::executeTest)
                 .then(CommandManager.literal("player")
                     .executes(RegionCommand::executeTest))

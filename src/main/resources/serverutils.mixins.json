@@ -22,6 +22,7 @@
     "lock.HopperBlockEntityMixin",
     "lock.LockableContainerBlockEntityMixin",
     "region.BlockItemMixin",
+    "region.CreeperEntityMixin",
     "region.EndPortalBlockMixin",
     "region.EntityMixin",
     "region.FindPointOfInterestTaskMixin",
@@ -30,6 +31,7 @@
     "region.ServerPlayerEntityMixin",
     "region.ServerPlayerInteractionManagerMixin",
     "region.ServerWorldMixin",
+    "region.TntBlockMixin",
     "region.shape.ServerPlayerEntityMixin"
   ],
   "client": [

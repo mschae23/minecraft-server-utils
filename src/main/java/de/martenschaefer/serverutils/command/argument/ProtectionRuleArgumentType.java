@@ -2,7 +2,7 @@ package de.martenschaefer.serverutils.command.argument;
 
 import net.minecraft.command.argument.EnumArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
-import de.martenschaefer.serverutils.region.rule.ProtectionRule;
+import de.martenschaefer.serverutils.region.ProtectionRule;
 import com.mojang.brigadier.context.CommandContext;
 
 @Deprecated

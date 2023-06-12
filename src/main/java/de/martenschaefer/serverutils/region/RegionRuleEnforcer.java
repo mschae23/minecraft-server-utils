@@ -20,7 +20,6 @@ import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
-import de.martenschaefer.serverutils.region.rule.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 
 public final class RegionRuleEnforcer {
@@ -73,6 +72,26 @@ public final class RegionRuleEnforcer {
 
     public static ActionResult onPlayerPvpSendDenied(ServerPlayerEntity player, Vec3d pos) {
         return onEventSendDenied(player, pos, ProtectionRule.PlayerPvp);
+    }
+
+    public static ActionResult onExplosionDestroy(ServerPlayerEntity player, BlockPos pos) {
+        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.ExplosionDestroy);
+    }
+
+    public static ActionResult onExplosionDestroy(ServerWorld world, BlockPos pos) {
+        return onEventGeneric(world, Vec3d.ofCenter(pos), ProtectionRule.ExplosionDestroy);
+    }
+
+    public static ActionResult onExplosionIgnite(ServerPlayerEntity player, BlockPos pos) {
+        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.ExplosionIgnite);
+    }
+
+    public static ActionResult onExplosionIgnite(ServerPlayerEntity player, Vec3d pos) {
+        return onEvent(player, pos, ProtectionRule.ExplosionIgnite);
+    }
+
+    public static ActionResult onExplosionIgnite(ServerWorld world, BlockPos pos) {
+        return onEventGeneric(world, Vec3d.ofCenter(pos), ProtectionRule.ExplosionIgnite);
     }
 
     public static ActionResult onEvent(PlayerEntity player, Vec3d pos, ProtectionRule rule) {
@@ -156,7 +175,7 @@ public final class RegionRuleEnforcer {
             .filter(state -> state != TriState.DEFAULT).findFirst().orElse(TriState.TRUE).get();
     }
 
-    private static void sendDeniedText(ServerPlayerEntity player) {
+    public static void sendDeniedText(ServerPlayerEntity player) {
         player.sendMessageToClient(DENIED_TEXT, true);
     }
 

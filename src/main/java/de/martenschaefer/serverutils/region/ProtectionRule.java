@@ -1,4 +1,4 @@
-package de.martenschaefer.serverutils.region.rule;
+package de.martenschaefer.serverutils.region;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -20,7 +20,9 @@ public enum ProtectionRule implements StringIdentifiable {
     PortalEndUse("portal.end.use"),
     VillagerWork("villager.work"),
     VillagerHome("villager.home"),
-    PlayerPvp("player.pvp");
+    PlayerPvp("player.pvp"),
+    ExplosionIgnite("explosion.ignite"),
+    ExplosionDestroy("explosion.destroy");
 
     public static final com.mojang.serialization.Codec<ProtectionRule> CODEC = StringIdentifiable.createCodec(ProtectionRule::values);
     private static final Map<String, ProtectionRule> BY_NAME = Arrays.stream(values()).collect(Collectors.toMap(ProtectionRule::asString, Function.identity()));
