@@ -32,31 +32,31 @@ public final class RegionRuleEnforcer {
     }
 
     public static ActionResult onBlockBreak(PlayerEntity player, BlockPos pos) {
-        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.BlockBreak);
+        return onEventSendDenied(player, Vec3d.ofCenter(pos), ProtectionRule.BlockBreak);
     }
 
     public static ActionResult onBlockPlace(PlayerEntity player, BlockPos pos) {
-        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.BlockPlace);
+        return onEventSendDenied(player, Vec3d.ofCenter(pos), ProtectionRule.BlockPlace);
     }
 
     public static ActionResult onBlockUse(PlayerEntity player, BlockPos pos) {
-        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.BlockUse, true);
+        return onEventSendDenied(player, Vec3d.ofCenter(pos), ProtectionRule.BlockUse, true);
     }
 
     public static TypedActionResult<ItemStack> onItemUse(PlayerEntity player, Hand hand, Vec3d pos) {
-        return new TypedActionResult<>(onEvent(player, pos, ProtectionRule.ItemUse, true), player.getStackInHand(hand));
+        return new TypedActionResult<>(onEventSendDenied(player, pos, ProtectionRule.ItemUse, true), player.getStackInHand(hand));
     }
 
     public static ActionResult onWorldModify(PlayerEntity player, BlockPos pos) {
-        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.WorldModify, true);
+        return onEventSendDenied(player, Vec3d.ofCenter(pos), ProtectionRule.WorldModify, true);
     }
 
     public static ActionResult onNetherPortalUse(PlayerEntity player, Vec3d pos) {
-        return onEvent(player, pos, ProtectionRule.PortalNetherUse);
+        return onEventSendDenied(player, pos, ProtectionRule.PortalNetherUse);
     }
 
     public static ActionResult onEndPortalUse(PlayerEntity player, Vec3d pos) {
-        return onEvent(player, pos, ProtectionRule.PortalEndUse);
+        return onEventSendDenied(player, pos, ProtectionRule.PortalEndUse);
     }
 
     public static ActionResult onVillagerWork(ServerWorld world, BlockPos pos) {
@@ -67,6 +67,14 @@ public final class RegionRuleEnforcer {
         return onEventGeneric(world, Vec3d.ofCenter(pos), ProtectionRule.VillagerHome);
     }
 
+    public static ActionResult onPlayerPvp(ServerPlayerEntity player, Vec3d pos) {
+        return onEvent(player, pos, ProtectionRule.PlayerPvp);
+    }
+
+    public static ActionResult onPlayerPvpSendDenied(ServerPlayerEntity player, Vec3d pos) {
+        return onEventSendDenied(player, pos, ProtectionRule.PlayerPvp);
+    }
+
     public static ActionResult onEvent(PlayerEntity player, Vec3d pos, ProtectionRule rule) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             RegistryKey<World> dimension = serverPlayer.getServerWorld().getRegistryKey();
@@ -74,12 +82,20 @@ public final class RegionRuleEnforcer {
             EnforcementContext context = new EnforcementContext(RegionPersistentState.get(serverPlayer.getServerWorld().getServer()), serverPlayer, protectionContext);
 
             boolean result = checkPermission(serverPlayer, context.regionState().findRegion(context.context()), rule);
-            onCheckedPermission(serverPlayer, result);
-
             return result ? ActionResult.PASS : ActionResult.FAIL;
         }
 
         return ActionResult.PASS;
+    }
+
+    public static ActionResult onEventSendDenied(PlayerEntity player, Vec3d pos, ProtectionRule rule) {
+        ActionResult result = onEvent(player, pos, rule);
+
+        if (result == ActionResult.FAIL && player instanceof ServerPlayerEntity serverPlayer) {
+            sendDeniedText(serverPlayer);
+        }
+
+        return result;
     }
 
     public static ActionResult onEvent(PlayerEntity player, Vec3d pos, ProtectionRule rule, boolean syncInventory) {
@@ -94,13 +110,22 @@ public final class RegionRuleEnforcer {
         return result;
     }
 
+    public static ActionResult onEventSendDenied(PlayerEntity player, Vec3d pos, ProtectionRule rule, boolean syncInventory) {
+        ActionResult result = onEvent(player, pos, rule, syncInventory);
+
+        if (result == ActionResult.FAIL && player instanceof ServerPlayerEntity serverPlayer) {
+            sendDeniedText(serverPlayer);
+        }
+
+        return result;
+    }
+
     public static ActionResult onEventGeneric(ServerWorld world, Vec3d pos, ProtectionRule rule) {
         RegistryKey<World> dimension = world.getRegistryKey();
         ProtectionContext protectionContext = new ProtectionContext(dimension, pos);
         RegionPersistentState regionState = RegionPersistentState.get(world.getServer());
 
         boolean result = checkPermissionGeneric(regionState.findRegion(protectionContext), rule);
-        onCheckedPermissionGeneric(world, protectionContext, result);
 
         return result ? ActionResult.PASS : ActionResult.FAIL;
     }
@@ -131,14 +156,8 @@ public final class RegionRuleEnforcer {
             .filter(state -> state != TriState.DEFAULT).findFirst().orElse(TriState.TRUE).get();
     }
 
-    private static void onCheckedPermission(ServerPlayerEntity player, boolean result) {
-        if (!result) {
-            player.sendMessageToClient(DENIED_TEXT, true);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private static void onCheckedPermissionGeneric(ServerWorld world, ProtectionContext context, boolean result) {
+    private static void sendDeniedText(ServerPlayerEntity player) {
+        player.sendMessageToClient(DENIED_TEXT, true);
     }
 
     private record EnforcementContext(RegionPersistentState regionState,

@@ -27,6 +27,7 @@
     "region.FindPointOfInterestTaskMixin",
     "region.ForgetCompletedPointOfInterestTaskMixin",
     "region.PlayerEntityMixin",
+    "region.ServerPlayerEntityMixin",
     "region.ServerPlayerInteractionManagerMixin",
     "region.ServerWorldMixin",
     "region.shape.ServerPlayerEntityMixin"

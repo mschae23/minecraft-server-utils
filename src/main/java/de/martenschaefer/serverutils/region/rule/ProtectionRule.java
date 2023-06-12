@@ -19,7 +19,8 @@ public enum ProtectionRule implements StringIdentifiable {
     PortalNetherUse("portal.nether.use"),
     PortalEndUse("portal.end.use"),
     VillagerWork("villager.work"),
-    VillagerHome("villager.home");
+    VillagerHome("villager.home"),
+    PlayerPvp("player.pvp");
 
     public static final com.mojang.serialization.Codec<ProtectionRule> CODEC = StringIdentifiable.createCodec(ProtectionRule::values);
     private static final Map<String, ProtectionRule> BY_NAME = Arrays.stream(values()).collect(Collectors.toMap(ProtectionRule::asString, Function.identity()));
