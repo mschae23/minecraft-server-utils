@@ -43,7 +43,7 @@ public record ServerUtilsConfigV3(CommandConfig command,
 
     @Override
     public ServerUtilsConfigV5 latest() {
-        return new ServerUtilsConfigV4(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, this.vote, this.misc.latest()).latest();
+        return new ServerUtilsConfigV4(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, this.vote, this.misc.latestV4()).latest();
     }
 
     @Override

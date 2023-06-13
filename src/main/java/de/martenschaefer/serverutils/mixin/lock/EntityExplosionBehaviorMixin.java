@@ -32,7 +32,7 @@ public class EntityExplosionBehaviorMixin extends ExplosionBehavior {
 
     @Inject(method = "canDestroyBlock", at = @At("RETURN"), cancellable = true)
     private void onCanDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float power, CallbackInfoReturnable<Boolean> cir) {
-        if (world instanceof ServerWorld serverWorld) {
+        if (ServerUtilsMod.getConfig().region().enabled() && world instanceof ServerWorld serverWorld) {
             ActionResult result = this.entity instanceof ServerPlayerEntity player ?
                 RegionRuleEnforcer.onExplosionDestroy(player, pos) : RegionRuleEnforcer.onExplosionDestroy(serverWorld, pos);
 

@@ -14,6 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.poi.PointOfInterestType;
 import net.minecraft.world.poi.PointOfInterestTypes;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import com.mojang.datafixers.kinds.IdF;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,6 +26,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class ForgetCompletedPointOfInterestTaskMixin {
     @Redirect(method = "method_47187", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ai/brain/task/ForgetCompletedPointOfInterestTask;isBedOccupiedByOthers(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/LivingEntity;)Z"))
     private static boolean redirectTestPoi(ServerWorld world, BlockPos pos, LivingEntity entity, TaskTriggerer.TaskContext<LivingEntity> context, MemoryQueryResult<IdF.Mu, GlobalPos> queryResult, Predicate<RegistryEntry<PointOfInterestType>> poiPredicate) {
+        if (!ServerUtilsMod.getConfig().region().enabled()) {
+            return isBedOccupiedByOthers(world, pos, entity);
+        }
+
         Optional<RegistryEntry<PointOfInterestType>> poiTypeOption = world.getPointOfInterestStorage().getType(pos);
 
         ActionResult result;

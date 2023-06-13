@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,7 +20,7 @@ public class EntityMixin {
     private boolean onIsNetherAllowed(MinecraftServer server) {
         Entity self = (Entity) (Object) this;
 
-        if (this.netherPortalTime >= self.getMaxNetherPortalTime() && self instanceof ServerPlayerEntity player) {
+        if (ServerUtilsMod.getConfig().region().enabled() && this.netherPortalTime >= self.getMaxNetherPortalTime() && self instanceof ServerPlayerEntity player) {
             ActionResult result = RegionRuleEnforcer.onNetherPortalUse(player, player.getPos());
 
             if (result == ActionResult.FAIL) {

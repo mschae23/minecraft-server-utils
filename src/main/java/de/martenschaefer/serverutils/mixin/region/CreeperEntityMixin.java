@@ -10,6 +10,7 @@ import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +26,7 @@ public class CreeperEntityMixin extends HostileEntity {
     private boolean redirectShouldIgnite(ItemStack handStack, TagKey<Item> tag, PlayerEntity player) {
         if (!handStack.isIn(tag)) {
             return false;
-        } else if (player instanceof ServerPlayerEntity serverPlayer) {
+        } else if (ServerUtilsMod.getConfig().region().enabled() && player instanceof ServerPlayerEntity serverPlayer) {
             ActionResult result = RegionRuleEnforcer.onExplosionIgnite(serverPlayer, this.getPos());
 
             if (result == ActionResult.FAIL) {

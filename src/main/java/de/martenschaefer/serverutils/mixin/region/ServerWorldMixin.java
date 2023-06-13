@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,6 +20,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ServerWorldMixin {
     @Inject(method = "canPlayerModifyAt", at = @At("RETURN"), cancellable = true)
     private void onCanPlayerModifyAt(PlayerEntity player, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+        if (!ServerUtilsMod.getConfig().region().enabled()) {
+            return;
+        }
+
         ActionResult result = RegionRuleEnforcer.onWorldModify(player, pos);
 
         if (result == ActionResult.FAIL) {

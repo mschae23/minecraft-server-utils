@@ -22,12 +22,12 @@ public abstract class TameableEntityMixin extends AnimalEntity {
 
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
     private boolean redirectShouldShowDeathMessages(GameRules instance, GameRules.Key<GameRules.BooleanRule> rule) {
-        return ServerUtilsMod.getConfig().broadcastEntityDeath().enabled() || instance.getBoolean(rule);
+        return ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || instance.getBoolean(rule);
     }
 
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;sendMessage(Lnet/minecraft/text/Text;)V"))
     private void redirectSendMessage(LivingEntity owner, Text message) {
-        if (!ServerUtilsMod.getConfig().broadcastEntityDeath().enabled()) {
+        if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled()) {
             owner.sendMessage(message);
             return;
         }

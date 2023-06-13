@@ -24,7 +24,7 @@ public abstract class LivingEntityMixin extends Entity {
         LivingEntity entity = (LivingEntity) entityObject;
         World world = entity.getWorld();
 
-        if (!ServerUtilsMod.getConfig().broadcastEntityDeath().enabled() || !(world instanceof ServerWorld serverWorld)) {
+        if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || !(world instanceof ServerWorld serverWorld)) {
             logger.info(logText, entityObject, deathMessage);
             return;
         }

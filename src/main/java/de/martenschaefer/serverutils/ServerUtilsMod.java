@@ -76,13 +76,13 @@ public class ServerUtilsMod implements ModInitializer {
 
         // Death Coordinates
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-            var config = getConfig();
+            var config = getConfig().misc().deathCoords();
 
-            if (alive || !Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", config.deathCoords().enabled())) {
+            if (alive || !Permissions.check(newPlayer, MODID + ".death.printcoords.enabled", config.enabled())) {
                 return;
             }
 
-            boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public", config.deathCoords().inPublicChat());
+            boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public", config.inPublicChat());
             GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getWorld().getRegistryKey(), oldPlayer.getBlockPos()));
 
             MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))

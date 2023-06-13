@@ -8,6 +8,7 @@ import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,6 +23,10 @@ public abstract class BlockItemMixin {
 
     @Inject(method = "place(Lnet/minecraft/item/ItemPlacementContext;)Lnet/minecraft/util/ActionResult;", at = @At("HEAD"), cancellable = true)
     private void onPlace(ItemPlacementContext context, CallbackInfoReturnable<ActionResult> cir) {
+        if (!ServerUtilsMod.getConfig().region().enabled()) {
+            return;
+        }
+
         ActionResult result = RegionRuleEnforcer.onBlockPlace(context.getPlayer(), context.getBlockPos());
 
         if (result != ActionResult.PASS) {

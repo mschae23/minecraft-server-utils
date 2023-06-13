@@ -15,6 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.poi.PointOfInterestType;
 import net.minecraft.world.poi.PointOfInterestTypes;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.datafixers.util.Unit;
@@ -29,6 +30,10 @@ public class FindPointOfInterestTaskMixin {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Redirect(method = "method_46885", at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;limit(J)Ljava/util/stream/Stream;", remap = false))
     private static Stream<Pair<RegistryEntry<PointOfInterestType>, BlockPos>> redirectPoiStream(Stream<Pair<RegistryEntry<PointOfInterestType>, BlockPos>> stream, long maxSize, boolean bl, MutableLong mutableLong, Long2ObjectMap<FindPointOfInterestTask.RetryMarker> long2ObjectMap, Predicate<RegistryEntry<PointOfInterestType>> poiPredicate, MemoryQueryResult<com.mojang.datafixers.kinds.Const.Mu<Unit>, MemoryQuery.Value<GlobalPos>> queryResult, Optional<Byte> entityStatus, ServerWorld world, PathAwareEntity entity, long time) {
+        if (!ServerUtilsMod.getConfig().region().enabled()) {
+            return stream.limit(maxSize);
+        }
+
         return stream.filter(pair -> {
             ActionResult result;
 

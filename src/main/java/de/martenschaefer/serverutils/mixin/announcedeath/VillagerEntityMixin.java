@@ -25,7 +25,7 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
         VillagerEntity entity = (VillagerEntity) entityObject;
         World world = entity.getWorld();
 
-        if (!ServerUtilsMod.getConfig().broadcastEntityDeath().enabled() || entity.getWorld().isClient() || !(world instanceof ServerWorld serverWorld)) {
+        if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || entity.getWorld().isClient() || !(world instanceof ServerWorld serverWorld)) {
             logger.info(logText, entityObject, deathMessage);
             return;
         }
@@ -35,7 +35,7 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
 
     @Redirect(method = "onStruckByLightning", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V", remap = false))
     private void redirectLogVillagerStruckByLightning(Logger logger, String logText, Object arg1, Object arg2, ServerWorld world, LightningEntity lightning) {
-        if (!ServerUtilsMod.getConfig().broadcastEntityDeath().enabled()) {
+        if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled()) {
             logger.info(logText, arg1, arg2);
             return;
         }

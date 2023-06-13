@@ -8,8 +8,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 public record ServerUtilsConfigV5(CommandConfig command,
                                   ChatConfig chat,
                                   RegionConfig region,
-                                  DeathCoordsConfig deathCoords,
-                                  BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
                                   MiscConfig misc) implements ModConfig<ServerUtilsConfigV5> {
@@ -17,8 +15,6 @@ public record ServerUtilsConfigV5(CommandConfig command,
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV5::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV5::chat),
         RegionConfig.CODEC.fieldOf("region").forGetter(ServerUtilsConfigV5::region),
-        DeathCoordsConfig.CODEC.fieldOf("death_coords").forGetter(ServerUtilsConfigV5::deathCoords),
-        BroadcastEntityDeathConfig.CODEC.fieldOf("broadcast_entity_death").forGetter(ServerUtilsConfigV5::broadcastEntityDeath),
         ContainerLockConfig.CODEC.fieldOf("container_lock").forGetter(ServerUtilsConfigV5::lock),
         VoteConfig.CODEC.fieldOf("vote").forGetter(ServerUtilsConfigV5::vote),
         MiscConfig.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV5::misc)
@@ -27,7 +23,7 @@ public record ServerUtilsConfigV5(CommandConfig command,
     public static final ModConfig.Type<ServerUtilsConfigV5, ServerUtilsConfigV5> TYPE = new ModConfig.Type<>(5, TYPE_CODEC);
 
     public static final ServerUtilsConfigV5 DEFAULT =
-        new ServerUtilsConfigV5(CommandConfig.DEFAULT, ChatConfig.DEFAULT, RegionConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfig.DEFAULT);
+        new ServerUtilsConfigV5(CommandConfig.DEFAULT, ChatConfig.DEFAULT, RegionConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfig.DEFAULT);
 
     @Override
     public ModConfig.Type<ServerUtilsConfigV5, ?> type() {

@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ExplosionBehaviorMixin {
     @Inject(method = "canDestroyBlock", at = @At("RETURN"), cancellable = true)
     private void onCanDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float power, CallbackInfoReturnable<Boolean> cir) {
-        if (world instanceof ServerWorld serverWorld) {
+        if (ServerUtilsMod.getConfig().region().enabled() && world instanceof ServerWorld serverWorld) {
             ActionResult result = RegionRuleEnforcer.onExplosionDestroy(serverWorld, pos);
 
             if (result == ActionResult.FAIL) {

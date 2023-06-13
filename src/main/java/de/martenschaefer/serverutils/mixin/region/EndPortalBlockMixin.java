@@ -7,6 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class EndPortalBlockMixin {
     @Inject(method = "onEntityCollision", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getRegistryKey()Lnet/minecraft/registry/RegistryKey;", ordinal = 0), cancellable = true)
     private void onTeleport(BlockState state, World world, BlockPos pos, Entity entity, CallbackInfo ci) {
-        if (entity instanceof ServerPlayerEntity player) {
+        if (ServerUtilsMod.getConfig().region().enabled() && entity instanceof ServerPlayerEntity player) {
             ActionResult result = RegionRuleEnforcer.onEndPortalUse(player, player.getPos());
 
             if (result == ActionResult.FAIL) {
