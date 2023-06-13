@@ -28,10 +28,11 @@ import de.martenschaefer.serverutils.command.RegionCommand;
 import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV5;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
+import de.martenschaefer.serverutils.config.v4.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
@@ -55,11 +56,11 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static final ServerUtilsConfigV4 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV4.DEFAULT;
+    private static final ServerUtilsConfigV5 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV5.DEFAULT;
     private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
-    private static final Codec<ModConfig<ServerUtilsConfigV4>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+    private static final Codec<ModConfig<ServerUtilsConfigV5>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
 
-    private static ServerUtilsConfigV4 CONFIG = LATEST_CONFIG_DEFAULT;
+    private static ServerUtilsConfigV5 CONFIG = LATEST_CONFIG_DEFAULT;
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier(MODID, "undecorated_chat"));
 
@@ -185,16 +186,17 @@ public class ServerUtilsMod implements ModInitializer {
     }
 
     @SuppressWarnings("deprecation")
-    private static ModConfig.Type<ServerUtilsConfigV4, ?> getConfigType(int version) {
+    private static ModConfig.Type<ServerUtilsConfigV5, ?> getConfigType(int version) {
         return new ModConfig.Type<>(version, switch (version) {
             case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
             case 2 -> ServerUtilsConfigV2.TYPE_CODEC;
             case 3 -> ServerUtilsConfigV3.TYPE_CODEC;
-            default -> ServerUtilsConfigV4.TYPE_CODEC;
+            case 4 -> ServerUtilsConfigV4.TYPE_CODEC;
+            default -> ServerUtilsConfigV5.TYPE_CODEC;
         });
     }
 
-    public static ServerUtilsConfigV4 getConfig() {
+    public static ServerUtilsConfigV5 getConfig() {
         return CONFIG;
     }
 

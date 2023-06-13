@@ -5,21 +5,22 @@ import de.martenschaefer.serverutils.config.BroadcastEntityDeathConfig;
 import de.martenschaefer.serverutils.config.ChatConfig;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import de.martenschaefer.serverutils.config.DeathCoordsConfig;
-import de.martenschaefer.serverutils.config.MiscConfig;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV4;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV5;
 import de.martenschaefer.serverutils.config.VoteConfig;
 import de.martenschaefer.serverutils.config.command.CommandConfig;
+import de.martenschaefer.serverutils.config.v4.ServerUtilsConfigV4;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 @Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
 public record ServerUtilsConfigV3(CommandConfig command,
                                   ChatConfig chat,
                                   DeathCoordsConfig deathCoords,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
-                                  MiscConfigV3 misc) implements ModConfig<ServerUtilsConfigV4> {
+                                  MiscConfigV3 misc) implements ModConfig<ServerUtilsConfigV5> {
     public static final Codec<ServerUtilsConfigV3> TYPE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV3::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV3::chat),
@@ -30,19 +31,19 @@ public record ServerUtilsConfigV3(CommandConfig command,
         MiscConfigV3.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV3::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV3::new)));
 
-    public static final Type<ServerUtilsConfigV4, ServerUtilsConfigV3> TYPE = new Type<>(3, TYPE_CODEC);
+    public static final Type<ServerUtilsConfigV5, ServerUtilsConfigV3> TYPE = new Type<>(3, TYPE_CODEC);
 
     public static final ServerUtilsConfigV3 DEFAULT =
         new ServerUtilsConfigV3(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfigV3.DEFAULT);
 
     @Override
-    public Type<ServerUtilsConfigV4, ?> type() {
+    public Type<ServerUtilsConfigV5, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV4 latest() {
-        return new ServerUtilsConfigV4(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, this.vote, this.misc.latest());
+    public ServerUtilsConfigV5 latest() {
+        return new ServerUtilsConfigV4(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, this.vote, this.misc.latest()).latest();
     }
 
     @Override
