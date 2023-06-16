@@ -3,20 +3,16 @@ package de.martenschaefer.serverutils.region;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
@@ -39,11 +35,11 @@ public final class RegionRuleEnforcer {
     }
 
     public static ActionResult onBlockUse(PlayerEntity player, BlockPos pos) {
-        return onEventSendDenied(player, Vec3d.ofCenter(pos), ProtectionRule.BlockUse, true);
+        return onEvent(player, Vec3d.ofCenter(pos), ProtectionRule.BlockUse, true);
     }
 
-    public static TypedActionResult<ItemStack> onItemUse(PlayerEntity player, Hand hand, Vec3d pos) {
-        return new TypedActionResult<>(onEventSendDenied(player, pos, ProtectionRule.ItemUse, true), player.getStackInHand(hand));
+    public static ActionResult onItemUse(PlayerEntity player, Hand hand, Vec3d pos) {
+        return onEvent(player, pos, ProtectionRule.ItemUse, true);
     }
 
     public static ActionResult onWorldModify(PlayerEntity player, BlockPos pos) {
@@ -151,8 +147,8 @@ public final class RegionRuleEnforcer {
 
     public static void init() {
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> onBlockBreak(player, pos));
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
-        UseItemCallback.EVENT.register((player, world, hand) -> onItemUse(player, hand, player.getPos()));
+        // UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> onBlockUse(player, hitResult.getBlockPos()));
+        // UseItemCallback.EVENT.register((player, world, hand) -> onItemUse(player, hand, player.getPos()));
     }
 
     public static String getBasePermission(String key, String action) {
