@@ -2,6 +2,7 @@ package de.martenschaefer.serverutils.command;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import net.minecraft.command.CommandSource;
@@ -28,6 +29,7 @@ import de.martenschaefer.serverutils.region.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import de.martenschaefer.serverutils.region.shape.ProtectionShape;
 import de.martenschaefer.serverutils.region.shape.RegionShapes;
+import de.martenschaefer.serverutils.region.shape.ShapeBuilder;
 import de.martenschaefer.serverutils.util.StringTriState;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -37,6 +39,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.cacheddata.CachedPermissionData;
@@ -50,6 +53,14 @@ public final class RegionCommand {
         new LiteralMessage("Protection rule '" + name + "' does not exist"));
     private static final DynamicCommandExceptionType TRISTATE_DOES_NOT_EXIST_EXCEPTION = new DynamicCommandExceptionType(name ->
         new LiteralMessage("Protection rule value '" + name + "' does not exist"));
+
+    // Shape command errors
+    private static final SimpleCommandExceptionType NOT_CURRENTLY_BUILDING = new SimpleCommandExceptionType(
+        new LiteralMessage("You are not currently building a shape! To start, run /region shape start"));
+    private static final SimpleCommandExceptionType ALREADY_BUILDING = new SimpleCommandExceptionType(
+        new LiteralMessage("You are already building a shape! To cancel, run /region shape stop"));
+    private static final DynamicCommandExceptionType SHAPE_NOT_FOUND = new DynamicCommandExceptionType(name ->
+        new LiteralMessage("Shape '" + name + "' does not exist"));
 
     private static final SuggestionProvider<ServerCommandSource> REGION_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
         RegionMap regions = RegionPersistentState.get(context.getSource().getServer()).getRegions();
@@ -65,6 +76,7 @@ public final class RegionCommand {
         ".command.region.add",
         ".command.region.remove",
         ".command.region.modify",
+        ".command.region.shape",
         ".command.region.info",
         ".command.region.test",
         ".command.region.list",
@@ -79,13 +91,13 @@ public final class RegionCommand {
                     .then(CommandManager.literal("with")
                         .then(CommandManager.literal("universe")
                             .executes(RegionCommand::executeAddWithUniverse))
-                            .then(CommandManager.literal("dimension")
-                                .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
-                                    .executes(RegionCommand::executeAddWithDimension)))
-                            .then(CommandManager.literal("pos")
-                                .then(CommandManager.argument("min", BlockPosArgumentType.blockPos())
-                                    .then(CommandManager.argument("max", BlockPosArgumentType.blockPos())
-                                        .executes(RegionCommand::executeAddWithLocalBox)))))))
+                        .then(CommandManager.literal("dimension")
+                            .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
+                                .executes(RegionCommand::executeAddWithDimension)))
+                        .then(CommandManager.literal("pos")
+                            .then(CommandManager.argument("min", BlockPosArgumentType.blockPos())
+                                .then(CommandManager.argument("max", BlockPosArgumentType.blockPos())
+                                    .executes(RegionCommand::executeAddWithLocalBox)))))))
             .then(CommandManager.literal("remove")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.remove", true))
                 .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
@@ -122,6 +134,36 @@ public final class RegionCommand {
                                     CommandSource.suggestMatching(Arrays.stream(states).map(StringTriState::asString), builder);
                                     return builder.buildFuture();
                                 }).executes(RegionCommand::executeModifySetRule)))))))
+            .then(CommandManager.literal("shape")
+                .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.shape", true))
+                .then(CommandManager.literal("start").executes(RegionCommand::executeStartShape))
+                .then(CommandManager.literal("stop").executes(RegionCommand::executeStopShape))
+                .then(CommandManager.literal("add")
+                    .then(CommandManager.literal("universe")
+                        .executes(RegionCommand::executeShapeAddUniverse))
+                    .then(CommandManager.literal("dimension")
+                        .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
+                            .executes(RegionCommand::executeShapeAddDimension)))
+                    .then(CommandManager.literal("pos")
+                        .then(CommandManager.literal("local")
+                            .then(CommandManager.argument("min", BlockPosArgumentType.blockPos())
+                                .then(CommandManager.argument("max", BlockPosArgumentType.blockPos())
+                                    .executes(RegionCommand::executeShapeAddLocalBox))))
+                        .then(CommandManager.literal("in")
+                            .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
+                                .then(CommandManager.argument("min", BlockPosArgumentType.blockPos())
+                                    .then(CommandManager.argument("max", BlockPosArgumentType.blockPos())
+                                        .executes(RegionCommand::executeShapeAddBox)))))))
+                .then(CommandManager.literal("finish")
+                    .then(CommandManager.argument("shape_name", StringArgumentType.string())
+                        .then(CommandManager.literal("to")
+                            .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
+                                .executes(RegionCommand::executeAddShapeToRegion)))))
+                .then(CommandManager.literal("remove")
+                    .then(CommandManager.argument("shape_name", StringArgumentType.string())
+                        .then(CommandManager.literal("from")
+                            .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
+                                .executes(RegionCommand::executeRemoveShapeFromRegion))))))
             .then(CommandManager.literal("info")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.info", true))
                 .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
@@ -202,31 +244,35 @@ public final class RegionCommand {
     }
 
     private static int executeModifyReplaceShapeWithUniverse(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.universe()));
+        return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.universe()), (oldRegion, modifiedRegion) ->
+            Text.literal("Set shape of '" + modifiedRegion.key() + "' to ").append(modifiedRegion.shapes().displayShort()));
     }
 
     private static int executeModifyReplaceShapeWithDimension(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         RegistryKey<World> dimension = DimensionArgumentType.getDimensionArgument(context, "dimension").getRegistryKey();
-        return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.dimension(dimension)));
+        return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.dimension(dimension)), (oldRegion, modifiedRegion) ->
+            Text.literal("Set shape of '" + modifiedRegion.key() + "' to ").append(modifiedRegion.shapes().displayShort()));
     }
 
     private static int executeModifyReplaceShapeWithLocalBox(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         RegistryKey<World> dimension = context.getSource().getWorld().getRegistryKey();
         BlockPos min = BlockPosArgumentType.getBlockPos(context, "min");
         BlockPos max = BlockPosArgumentType.getBlockPos(context, "max");
-        return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.box(dimension, min, max)));
+        return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.box(dimension, min, max)), (oldRegion, modifiedRegion) ->
+            Text.literal("Set shape of '" + modifiedRegion.key() + "' to ").append(modifiedRegion.shapes().displayShort()));
     }
 
     private static int executeModifyLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         int level = IntegerArgumentType.getInteger(context, "level");
-        return modifyRegion(context, region -> region.withLevel(level));
+        return modifyRegion(context, region -> region.withLevel(level), (oldRegion, modifiedRegion) ->
+            Text.literal("Set level of '" + modifiedRegion.key() + "' from " + oldRegion.level() + " to " + level));
     }
 
     private static int executeModifySetRule(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String ruleString = StringArgumentType.getString(context, "rule_name");
         String stateString = StringArgumentType.getString(context, "rule_value");
         ProtectionRule rule = ProtectionRule.byName(ruleString);
-        TriState value = StringTriState.byName(stateString);
+        StringTriState value = StringTriState.byNameString(stateString);
 
         if (rule == null) {
             throw RULE_DOES_NOT_EXIST_EXCEPTION.create(ruleString);
@@ -234,7 +280,27 @@ public final class RegionCommand {
             throw TRISTATE_DOES_NOT_EXIST_EXCEPTION.create(stateString);
         }
 
-        return modifyRegion(context, region -> region.withRule(rule, value));
+        return modifyRegion(context, region -> region.withRule(rule, value.getState()), (oldRegion, modifiedRegion) ->
+            Text.literal("Set rule ").append(Text.literal(rule.getName()).formatted(Formatting.GRAY))
+                .append(" for '" + modifiedRegion.key() + "' to ").append(Text.literal(value.asString()).formatted(value.getFormatting())));
+    }
+
+    private static int modifyRegion(CommandContext<ServerCommandSource> context, UnaryOperator<RegionV2> operator, BiFunction<RegionV2, RegionV2, Text> feedback) throws CommandSyntaxException {
+        String key = StringArgumentType.getString(context, "name");
+
+        ServerCommandSource source = context.getSource();
+        RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
+        RegionV2 region = regionState.getRegionByKey(key);
+
+        if (region != null) {
+            RegionV2 modifiedRegion = operator.apply(region);
+            regionState.replaceRegion(region, modifiedRegion);
+
+            source.sendFeedback(() -> feedback.apply(region, modifiedRegion), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
+        }
     }
 
     private static int executeInfo(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -249,23 +315,6 @@ public final class RegionCommand {
                 .append("\n Level: ").append(String.valueOf(region.level()))
                 .append("\n Shape:\n").append(region.shapes().displayList())
                 .append("\n Rules:\n").append(region.rulesForDisplay()), false);
-            return Command.SINGLE_SUCCESS;
-        } else {
-            throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
-        }
-    }
-
-    private static int modifyRegion(CommandContext<ServerCommandSource> context, UnaryOperator<RegionV2> operator) throws CommandSyntaxException {
-        String key = StringArgumentType.getString(context, "name");
-
-        ServerCommandSource source = context.getSource();
-        RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
-        RegionV2 region = regionState.getRegionByKey(key);
-
-        if (region != null) {
-            regionState.replaceRegion(region, operator.apply(region));
-
-            source.sendFeedback(() -> Text.literal("Modified region '" + key + "'"), true);
             return Command.SINGLE_SUCCESS;
         } else {
             throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
@@ -338,5 +387,131 @@ public final class RegionCommand {
             .append("\n\nRules:").append(rulesText), false);
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    // Shape commands
+
+    private static int executeStartShape(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+        ServerPlayerEntity player = source.getPlayer();
+
+        ShapeBuilder builder = ShapeBuilder.start(player);
+
+        if (builder != null) {
+            source.sendFeedback(() -> Text.literal("Started building a shape!\nUse ")
+                    .append(Text.literal("/region shape add").formatted(Formatting.GRAY))
+                    .append(" to add primitives to this shape, and ")
+                    .append(Text.literal("/region shape finish").formatted(Formatting.GRAY))
+                    .append(" to add it to a region."),
+                false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            throw ALREADY_BUILDING.create();
+        }
+    }
+
+    private static int executeStopShape(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+        ServerPlayerEntity player = source.getPlayer();
+
+        ShapeBuilder builder = ShapeBuilder.from(player);
+
+        if (builder != null) {
+            builder.finish();
+            source.sendFeedback(() -> Text.literal("Canceled shape building"), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            throw NOT_CURRENTLY_BUILDING.create();
+        }
+    }
+
+    private static int executeShapeAddBox(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        RegistryKey<World> dimension = DimensionArgumentType.getDimensionArgument(context, "dimension").getRegistryKey();
+        BlockPos min = BlockPosArgumentType.getBlockPos(context, "min");
+        BlockPos max = BlockPosArgumentType.getBlockPos(context, "max");
+        return addShape(context.getSource(), ProtectionShape.box(dimension, min, max));
+    }
+
+    private static int executeShapeAddLocalBox(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        RegistryKey<World> dimension = context.getSource().getWorld().getRegistryKey();
+        BlockPos min = BlockPosArgumentType.getBlockPos(context, "min");
+        BlockPos max = BlockPosArgumentType.getBlockPos(context, "max");
+        return addShape(context.getSource(), ProtectionShape.box(dimension, min, max));
+    }
+
+    private static int executeShapeAddDimension(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        RegistryKey<World> dimension = DimensionArgumentType.getDimensionArgument(context, "dimension").getRegistryKey();
+        return addShape(context.getSource(), ProtectionShape.dimension(dimension));
+    }
+
+    private static int executeShapeAddUniverse(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return addShape(context.getSource(), ProtectionShape.universe());
+    }
+
+    private static int addShape(ServerCommandSource source, ProtectionShape shape) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayer();
+        ShapeBuilder shapeBuilder = ShapeBuilder.from(player);
+
+        if (shapeBuilder != null) {
+            shapeBuilder.add(shape);
+            source.sendFeedback(() -> Text.literal("Added ").append(shape.display()).append(" to current shape"), false);
+        } else {
+            throw NOT_CURRENTLY_BUILDING.create();
+        }
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int executeAddShapeToRegion(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+        ServerPlayerEntity player = source.getPlayer();
+
+        String key = StringArgumentType.getString(context, "name");
+        String shapeName = StringArgumentType.getString(context, "shape_name");
+
+        RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
+        RegionV2 region = regionState.getRegionByKey(key);
+
+        if (region != null) {
+            ShapeBuilder builder = ShapeBuilder.from(player);
+
+            if (builder != null) {
+                ProtectionShape shape = builder.finish();
+
+                regionState.replaceRegion(region, region.withAddedShape(shapeName, shape));
+
+                source.sendFeedback(() -> Text.literal("Added shape as '" + shapeName + "' to '" + region.key() + "'"), true);
+                return Command.SINGLE_SUCCESS;
+            } else {
+                throw NOT_CURRENTLY_BUILDING.create();
+            }
+        } else {
+            throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
+        }
+    }
+
+    private static int executeRemoveShapeFromRegion(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+
+        String key = StringArgumentType.getString(context, "name");
+        String shapeName = StringArgumentType.getString(context, "shape_name");
+
+        RegionPersistentState regionState = RegionPersistentState.get(source.getServer());
+        RegionV2 region = regionState.getRegionByKey(key);
+
+        if (region != null) {
+            RegionV2 modifiedRegion = region.withRemovedShape(shapeName);
+
+            if (region == modifiedRegion) {
+                throw SHAPE_NOT_FOUND.create(shapeName);
+            }
+
+            regionState.replaceRegion(region, modifiedRegion);
+
+            source.sendFeedback(() -> Text.literal("Removed shape '" + shapeName + "' from '" + region.key() + "'"), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            throw REGION_DOES_NOT_EXIST_EXCEPTION.create(key);
+        }
     }
 }

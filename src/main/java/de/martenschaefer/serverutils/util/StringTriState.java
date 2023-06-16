@@ -2,6 +2,7 @@ package de.martenschaefer.serverutils.util;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.StringIdentifiable;
@@ -14,6 +15,7 @@ public enum StringTriState implements StringIdentifiable {
     TRUE("true", TriState.TRUE, Formatting.GREEN);
 
     public static final com.mojang.serialization.Codec<StringTriState> CODEC = StringIdentifiable.createCodec(StringTriState::values);
+    private static final Map<String, StringTriState> BY_NAME_ORIGINAL = Arrays.stream(values()).collect(Collectors.toMap(StringTriState::asString, Function.identity()));
     private static final Map<String, TriState> BY_NAME = Arrays.stream(values()).collect(Collectors.toMap(StringTriState::asString, StringTriState::getState));
 
     private final String name;
@@ -42,6 +44,11 @@ public enum StringTriState implements StringIdentifiable {
     @Nullable
     public static TriState byName(String name) {
         return BY_NAME.get(name);
+    }
+
+    @Nullable
+    public static StringTriState byNameString(String name) {
+        return BY_NAME_ORIGINAL.get(name);
     }
 
     public static StringTriState from(TriState state) {
