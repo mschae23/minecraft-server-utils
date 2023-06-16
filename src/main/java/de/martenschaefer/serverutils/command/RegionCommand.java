@@ -21,11 +21,11 @@ import net.minecraft.world.World;
 import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
+import de.martenschaefer.serverutils.region.ProtectionRule;
 import de.martenschaefer.serverutils.region.RegionMap;
 import de.martenschaefer.serverutils.region.RegionPersistentState;
 import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
 import de.martenschaefer.serverutils.region.RegionV2;
-import de.martenschaefer.serverutils.region.ProtectionRule;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import de.martenschaefer.serverutils.region.shape.ProtectionShape;
 import de.martenschaefer.serverutils.region.shape.RegionShapes;
@@ -66,6 +66,23 @@ public final class RegionCommand {
         RegionMap regions = RegionPersistentState.get(context.getSource().getServer()).getRegions();
 
         CommandSource.suggestMatching(regions.stream().map(RegionV2::key), builder);
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<ServerCommandSource> REGION_SHAPE_NAME_SUGGESTION_PROVIDER = (context, builder) -> {
+        RegionPersistentState regionState = RegionPersistentState.get(context.getSource().getServer());
+
+        try {
+            String key = StringArgumentType.getString(context, "name");
+            RegionV2 region = regionState.getRegionByKey(key);
+
+            if (region != null) {
+                CommandSource.suggestMatching(Arrays.stream(region.shapes().getEntries()).map(RegionShapes.Entry::name), builder);
+            }
+        } catch (IllegalArgumentException e) {
+            // Ignore
+        }
+
         return builder.buildFuture();
     };
 
@@ -160,10 +177,9 @@ public final class RegionCommand {
                             .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
                                 .executes(RegionCommand::executeAddShapeToRegion)))))
                 .then(CommandManager.literal("remove")
-                    .then(CommandManager.argument("shape_name", StringArgumentType.string())
-                        .then(CommandManager.literal("from")
-                            .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
-                                .executes(RegionCommand::executeRemoveShapeFromRegion))))))
+                    .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)
+                        .then(CommandManager.argument("shape_name", StringArgumentType.string()).suggests(REGION_SHAPE_NAME_SUGGESTION_PROVIDER)
+                            .executes(RegionCommand::executeRemoveShapeFromRegion)))))
             .then(CommandManager.literal("info")
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.info", true))
                 .then(CommandManager.argument("name", StringArgumentType.word()).suggests(REGION_NAME_SUGGESTION_PROVIDER)

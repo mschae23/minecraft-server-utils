@@ -13,7 +13,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 public class RegionShapes {
     public static final Codec<RegionShapes> CODEC = Entry.CODEC.listOf().xmap(RegionShapes::new, shapes -> Arrays.asList(shapes.entries));
 
-    public final Entry[] entries;
+    private final Entry[] entries;
     private final UnionShape combinedShape;
 
     public RegionShapes(Entry... entries) {
@@ -38,6 +38,10 @@ public class RegionShapes {
 
     public boolean testDimension(RegistryKey<World> dimension) {
         return this.combinedShape.testDimension(dimension);
+    }
+
+    public Entry[] getEntries() {
+        return this.entries;
     }
 
     public RegionShapes withShape(String name, ProtectionShape shape) {
