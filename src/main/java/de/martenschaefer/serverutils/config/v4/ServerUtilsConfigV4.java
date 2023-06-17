@@ -6,8 +6,8 @@ import de.martenschaefer.serverutils.config.ChatConfig;
 import de.martenschaefer.serverutils.config.ContainerLockConfig;
 import de.martenschaefer.serverutils.config.DeathCoordsConfig;
 import de.martenschaefer.serverutils.config.MiscConfig;
-import de.martenschaefer.serverutils.config.RegionConfig;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV5;
+import de.martenschaefer.serverutils.config.v5.RegionConfigV5;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV6;
 import de.martenschaefer.serverutils.config.VoteConfig;
 import de.martenschaefer.serverutils.config.command.CommandConfig;
 import com.mojang.serialization.Codec;
@@ -21,7 +21,7 @@ public record ServerUtilsConfigV4(CommandConfig command,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
-                                  MiscConfigV4 misc) implements ModConfig<ServerUtilsConfigV5> {
+                                  MiscConfigV4 misc) implements ModConfig<ServerUtilsConfigV6> {
     public static final Codec<ServerUtilsConfigV4> TYPE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV4::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV4::chat),
@@ -32,19 +32,19 @@ public record ServerUtilsConfigV4(CommandConfig command,
         MiscConfigV4.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV4::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV4::new)));
 
-    public static final Type<ServerUtilsConfigV5, ServerUtilsConfigV4> TYPE = new Type<>(4, TYPE_CODEC);
+    public static final Type<ServerUtilsConfigV6, ServerUtilsConfigV4> TYPE = new Type<>(4, TYPE_CODEC);
 
     public static final ServerUtilsConfigV4 DEFAULT =
         new ServerUtilsConfigV4(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfigV4.DEFAULT);
 
     @Override
-    public Type<ServerUtilsConfigV5, ?> type() {
+    public Type<ServerUtilsConfigV6, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV5 latest() {
-        return new ServerUtilsConfigV5(this.command, this.chat, RegionConfig.DEFAULT, this.lock, this.vote,
+    public ServerUtilsConfigV6 latest() {
+        return new ServerUtilsConfigV6(this.command, this.chat, this.lock, this.vote,
             new MiscConfig(this.deathCoords, this.broadcastEntityDeath, this.misc.enableGamemodeSwitcher(), this.misc.itemFrame()));
     }
 

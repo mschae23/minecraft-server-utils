@@ -24,20 +24,16 @@ import de.martenschaefer.config.api.ConfigIo;
 import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.command.LockCommand;
 import de.martenschaefer.serverutils.command.PosCommand;
-import de.martenschaefer.serverutils.command.RegionCommand;
 import de.martenschaefer.serverutils.command.ServerUtilsCommand;
 import de.martenschaefer.serverutils.command.UnlockCommand;
 import de.martenschaefer.serverutils.command.VoteCommand;
-import de.martenschaefer.serverutils.config.ServerUtilsConfigV5;
+import de.martenschaefer.serverutils.config.ServerUtilsConfigV6;
 import de.martenschaefer.serverutils.config.v1.ServerUtilsConfigV1;
 import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.config.v4.ServerUtilsConfigV4;
+import de.martenschaefer.serverutils.config.v5.ServerUtilsConfigV5;
 import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
-import de.martenschaefer.serverutils.region.RegionPersistentState;
-import de.martenschaefer.serverutils.region.RegionRuleEnforcer;
-import de.martenschaefer.serverutils.region.RegionV2;
-import de.martenschaefer.serverutils.region.shape.ProtectionShapeType;
 import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -56,11 +52,11 @@ public class ServerUtilsMod implements ModInitializer {
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server Utils");
 
-    private static final ServerUtilsConfigV5 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV5.DEFAULT;
+    private static final ServerUtilsConfigV6 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV6.DEFAULT;
     private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
-    private static final Codec<ModConfig<ServerUtilsConfigV5>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+    private static final Codec<ModConfig<ServerUtilsConfigV6>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
 
-    private static ServerUtilsConfigV5 CONFIG = LATEST_CONFIG_DEFAULT;
+    private static ServerUtilsConfigV6 CONFIG = LATEST_CONFIG_DEFAULT;
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier(MODID, "undecorated_chat"));
 
@@ -72,7 +68,6 @@ public class ServerUtilsMod implements ModInitializer {
         );
 
         ServerUtilsRegistries.init();
-        ProtectionShapeType.init();
 
         // Death Coordinates
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
@@ -116,11 +111,7 @@ public class ServerUtilsMod implements ModInitializer {
             LockCommand.register(dispatcher);
             UnlockCommand.register(dispatcher);
             VoteCommand.register(dispatcher);
-            RegionCommand.register(dispatcher);
         });
-
-        // ArgumentTypeRegistry.registerArgumentType(id("protection_rule"), ProtectionRuleArgumentType.class, ConstantArgumentSerializer.of(ProtectionRuleArgumentType::protectionRule));
-        // ArgumentTypeRegistry.registerArgumentType(id("tristate"), TriStateArgumentType.class, ConstantArgumentSerializer.of(TriStateArgumentType::triState));
 
         // Check permissions on the server once, so that they are registered and can be auto-completed
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -132,7 +123,6 @@ public class ServerUtilsMod implements ModInitializer {
                 LockCommand.PERMISSIONS,
                 UnlockCommand.PERMISSIONS,
                 VoteCommand.PERMISSIONS,
-                RegionCommand.PERMISSIONS,
             }).flatMap(Arrays::stream);
 
             String[] permissions = new String[] {
@@ -140,11 +130,7 @@ public class ServerUtilsMod implements ModInitializer {
                 ".death.printcoords.public",
             };
 
-            Stream<String> regionPermissions = RegionPersistentState.get(server).getRegions().stream()
-                .map(RegionV2::key).flatMap(name -> Arrays.stream(RegionRuleEnforcer.RULES)
-                    .map(rule -> RegionRuleEnforcer.getBasePermission(name, rule)));
-
-            Stream.concat(Stream.concat(commandPermissions, Arrays.stream(permissions)), regionPermissions)
+            Stream.concat(commandPermissions, Arrays.stream(permissions))
                 .forEach(permission -> Permissions.check(source, MODID + permission));
 
             ModUtils.getLuckPerms().getContextManager().registerCalculator(new ContextCalculator<ServerPlayerEntity>() {
@@ -170,8 +156,6 @@ public class ServerUtilsMod implements ModInitializer {
             });
         });
 
-        RegionPersistentState.init();
-
         //noinspection resource
         ServerLifecycleEvents.SERVER_STARTED.register(server ->
             ModUtils.getLuckPerms().getEventBus().subscribe(UserDataRecalculateEvent.class, event -> onUserDataRecalculate(server, event)));
@@ -186,17 +170,18 @@ public class ServerUtilsMod implements ModInitializer {
     }
 
     @SuppressWarnings("deprecation")
-    private static ModConfig.Type<ServerUtilsConfigV5, ?> getConfigType(int version) {
+    private static ModConfig.Type<ServerUtilsConfigV6, ?> getConfigType(int version) {
         return new ModConfig.Type<>(version, switch (version) {
             case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
             case 2 -> ServerUtilsConfigV2.TYPE_CODEC;
             case 3 -> ServerUtilsConfigV3.TYPE_CODEC;
             case 4 -> ServerUtilsConfigV4.TYPE_CODEC;
-            default -> ServerUtilsConfigV5.TYPE_CODEC;
+            case 5 -> ServerUtilsConfigV5.TYPE_CODEC;
+            default -> ServerUtilsConfigV6.TYPE_CODEC;
         });
     }
 
-    public static ServerUtilsConfigV5 getConfig() {
+    public static ServerUtilsConfigV6 getConfig() {
         return CONFIG;
     }
 
