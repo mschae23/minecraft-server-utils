@@ -86,7 +86,7 @@ public final class SortedRegionHashMap implements RegionMap {
     @Override
     public TriState checkRegion(ProtectionContext context, ServerPlayerEntity player, ProtectionRule rule) {
         CachedPermissionData permissions = ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(player);
-        String prefix = ServerUtilsMod.MODID + ".";
+        String prefix = ServerUtilsMod.MODID + ".region.";
         String suffix = "." + rule.getName();
 
         for (RegionV2 region : this.regions) {
