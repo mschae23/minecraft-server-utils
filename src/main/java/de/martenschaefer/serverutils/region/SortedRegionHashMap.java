@@ -2,18 +2,23 @@ package de.martenschaefer.serverutils.region;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.stream.Stream;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.fabricmc.fabric.api.util.TriState;
+import de.martenschaefer.serverutils.ModUtils;
+import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
+import net.luckperms.api.cacheddata.CachedPermissionData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SortedRegionHashMap implements RegionMap {
-    private final SortedSet<RegionV2> regions = new ObjectRBTreeSet<>();
+    private final ObjectSortedSet<RegionV2> regions = new ObjectRBTreeSet<>();
     private final Object2ObjectMap<String, RegionV2> byKey = new Object2ObjectOpenHashMap<>();
 
     @Override
@@ -76,6 +81,41 @@ public final class SortedRegionHashMap implements RegionMap {
     @Override
     public Stream<RegionV2> findRegion(ProtectionContext context) {
         return this.regions.stream().filter(region -> region.shapes().test(context));
+    }
+
+    @Override
+    public TriState checkRegion(ProtectionContext context, ServerPlayerEntity player, ProtectionRule rule) {
+        CachedPermissionData permissions = ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(player);
+        String prefix = ServerUtilsMod.MODID + ".";
+        String suffix = "." + rule.getName();
+
+        for (RegionV2 region : this.regions) {
+            if (region.shapes().test(context)) {
+                TriState result = ModUtils.toFabricTriState(permissions.checkPermission(prefix + region.key() + suffix));
+                result = result == TriState.DEFAULT ? region.getRule(rule) : result;
+
+                if (result != TriState.DEFAULT) {
+                    return result;
+                }
+            }
+        }
+
+        return TriState.DEFAULT;
+    }
+
+    @Override
+    public TriState checkRegionGeneric(ProtectionContext context, ProtectionRule rule) {
+        for (RegionV2 region : this.regions) {
+            if (region.shapes().test(context)) {
+                TriState result = region.getRule(rule);
+
+                if (result != TriState.DEFAULT) {
+                    return result;
+                }
+            }
+        }
+
+        return TriState.DEFAULT;
     }
 
     @Override

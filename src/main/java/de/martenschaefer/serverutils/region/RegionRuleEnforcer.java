@@ -93,11 +93,11 @@ public final class RegionRuleEnforcer {
     public static ActionResult onEvent(PlayerEntity player, Vec3d pos, ProtectionRule rule) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             RegistryKey<World> dimension = serverPlayer.getServerWorld().getRegistryKey();
-            ProtectionContext protectionContext = new ProtectionContext(dimension, pos);
-            EnforcementContext context = new EnforcementContext(RegionPersistentState.get(serverPlayer.getServerWorld().getServer()), serverPlayer, protectionContext);
+            ProtectionContext context = new ProtectionContext(dimension, pos);
+            RegionPersistentState regionState = RegionPersistentState.get(serverPlayer.getServerWorld().getServer());
 
-            boolean result = checkPermission(serverPlayer, context.regionState().findRegion(context.context()), rule);
-            return result ? ActionResult.PASS : ActionResult.FAIL;
+            TriState result = regionState.checkRegion(context, serverPlayer, rule);
+            return result == TriState.FALSE ? ActionResult.FAIL : ActionResult.PASS;
         }
 
         return ActionResult.PASS;
@@ -137,12 +137,11 @@ public final class RegionRuleEnforcer {
 
     public static ActionResult onEventGeneric(ServerWorld world, Vec3d pos, ProtectionRule rule) {
         RegistryKey<World> dimension = world.getRegistryKey();
-        ProtectionContext protectionContext = new ProtectionContext(dimension, pos);
+        ProtectionContext context = new ProtectionContext(dimension, pos);
         RegionPersistentState regionState = RegionPersistentState.get(world.getServer());
 
-        boolean result = checkPermissionGeneric(regionState.findRegion(protectionContext), rule);
-
-        return result ? ActionResult.PASS : ActionResult.FAIL;
+        TriState result = regionState.checkRegionGeneric(context, rule);
+        return result == TriState.FALSE ? ActionResult.FAIL : ActionResult.PASS;
     }
 
     public static void init() {
@@ -173,10 +172,5 @@ public final class RegionRuleEnforcer {
 
     public static void sendDeniedText(ServerPlayerEntity player) {
         player.sendMessageToClient(DENIED_TEXT, true);
-    }
-
-    private record EnforcementContext(RegionPersistentState regionState,
-                                      ServerPlayerEntity player,
-                                      ProtectionContext context) {
     }
 }

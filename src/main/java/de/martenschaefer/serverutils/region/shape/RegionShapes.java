@@ -45,7 +45,7 @@ public class RegionShapes {
     }
 
     public RegionShapes withShape(String name, ProtectionShape shape) {
-        var newShapes = Arrays.copyOf(this.entries, this.entries.length + 1);
+        Entry[] newShapes = Arrays.copyOf(this.entries, this.entries.length + 1);
         newShapes[newShapes.length - 1] = new Entry(name, shape);
         return new RegionShapes(newShapes);
     }

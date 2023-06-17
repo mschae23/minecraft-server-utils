@@ -6,10 +6,12 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.ServerUtilsMod;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
@@ -17,7 +19,7 @@ import de.martenschaefer.serverutils.region.v1.RegionV1;
 import com.mojang.datafixers.util.Pair;
 import org.jetbrains.annotations.Nullable;
 
-public class RegionPersistentState extends PersistentState {
+public final class RegionPersistentState extends PersistentState {
     public static final String ID = ServerUtilsMod.MODID + "_region";
 
     private final IndexedRegionMap regions;
@@ -59,6 +61,14 @@ public class RegionPersistentState extends PersistentState {
 
     public Stream<RegionV2> findRegion(ProtectionContext context) {
         return this.getRegions().findRegion(context);
+    }
+
+    public TriState checkRegion(ProtectionContext context, ServerPlayerEntity player, ProtectionRule rule) {
+        return this.regions.checkRegion(context, player, rule);
+    }
+
+    public TriState checkRegionGeneric(ProtectionContext context, ProtectionRule rule) {
+        return this.regions.checkRegionGeneric(context, rule);
     }
 
     @Override

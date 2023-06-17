@@ -4,7 +4,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
+import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.serverutils.region.shape.ProtectionContext;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
@@ -41,6 +43,28 @@ public final class IndexedRegionMap implements RegionMap {
         }
 
         return Stream.empty();
+    }
+
+    @Override
+    public TriState checkRegion(ProtectionContext context, ServerPlayerEntity player, ProtectionRule rule) {
+        SortedRegionHashMap map = this.byDimension.get(context.dimension());
+
+        if (map != null) {
+            return map.checkRegion(context, player, rule);
+        } else {
+            return TriState.DEFAULT;
+        }
+    }
+
+    @Override
+    public TriState checkRegionGeneric(ProtectionContext context, ProtectionRule rule) {
+        SortedRegionHashMap map = this.byDimension.get(context.dimension());
+
+        if (map != null) {
+            return map.checkRegionGeneric(context, rule);
+        } else {
+            return TriState.DEFAULT;
+        }
     }
 
     @Override

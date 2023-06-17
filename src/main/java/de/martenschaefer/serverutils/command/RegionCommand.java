@@ -106,8 +106,8 @@ public final class RegionCommand {
                 .requires(Permissions.require(ServerUtilsMod.MODID + ".command.region.add", true))
                 .then(CommandManager.argument("name", StringArgumentType.word())
                     .then(CommandManager.literal("with")
-                        .then(CommandManager.literal("universe")
-                            .executes(RegionCommand::executeAddWithUniverse))
+                        .then(CommandManager.literal("universal")
+                            .executes(RegionCommand::executeAddWithUniversal))
                         .then(CommandManager.literal("dimension")
                             .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                                 .executes(RegionCommand::executeAddWithDimension)))
@@ -125,8 +125,8 @@ public final class RegionCommand {
                     .then(CommandManager.literal("shape")
                         .then(CommandManager.literal("replace")
                             .then(CommandManager.literal("with")
-                                .then(CommandManager.literal("universe")
-                                    .executes(RegionCommand::executeModifyReplaceShapeWithUniverse))
+                                .then(CommandManager.literal("universal")
+                                    .executes(RegionCommand::executeModifyReplaceShapeWithUniversal))
                                 .then(CommandManager.literal("dimension")
                                     .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                                         .executes(RegionCommand::executeModifyReplaceShapeWithDimension)))
@@ -156,8 +156,8 @@ public final class RegionCommand {
                 .then(CommandManager.literal("start").executes(RegionCommand::executeStartShape))
                 .then(CommandManager.literal("stop").executes(RegionCommand::executeStopShape))
                 .then(CommandManager.literal("add")
-                    .then(CommandManager.literal("universe")
-                        .executes(RegionCommand::executeShapeAddUniverse))
+                    .then(CommandManager.literal("universal")
+                        .executes(RegionCommand::executeShapeAddUniversal))
                     .then(CommandManager.literal("dimension")
                         .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                             .executes(RegionCommand::executeShapeAddDimension)))
@@ -196,23 +196,23 @@ public final class RegionCommand {
                 .executes(RegionCommand::executeList)));
     }
 
-    private static int executeAddWithUniverse(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.universe()));
+    private static int executeAddWithUniversal(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.universe()), false);
     }
 
     private static int executeAddWithDimension(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         RegistryKey<World> dimension = DimensionArgumentType.getDimensionArgument(context, "dimension").getRegistryKey();
-        return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.dimension(dimension)));
+        return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.dimension(dimension)), false);
     }
 
     private static int executeAddWithLocalBox(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         RegistryKey<World> dimension = context.getSource().getWorld().getRegistryKey();
         BlockPos min = BlockPosArgumentType.getBlockPos(context, "min");
         BlockPos max = BlockPosArgumentType.getBlockPos(context, "max");
-        return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.box(dimension, min, max)));
+        return addRegion(context, region -> region.withAddedShape(region.key(), ProtectionShape.box(dimension, min, max)), true);
     }
 
-    private static int addRegion(CommandContext<ServerCommandSource> context, UnaryOperator<RegionV2> operator) throws CommandSyntaxException {
+    private static int addRegion(CommandContext<ServerCommandSource> context, UnaryOperator<RegionV2> operator, boolean sendShapeCommandTip) throws CommandSyntaxException {
         String key = StringArgumentType.getString(context, "name");
 
         ServerCommandSource source = context.getSource();
@@ -232,11 +232,11 @@ public final class RegionCommand {
                 source.sendFeedback(() -> Text.literal("Added region as '" + key + "' with ").append(shapes.displayShort()), true);
             }
 
-            source.sendFeedback(() -> Text.literal("Run ")
+            if (sendShapeCommandTip) {
+                source.sendFeedback(() -> Text.literal("Run ")
                     .append(Text.literal("/region shape start").formatted(Formatting.GRAY))
-                    .append(" to include additional shapes in this region"),
-                false
-            );
+                    .append(" to include additional shapes in this region"), false);
+            }
 
             return Command.SINGLE_SUCCESS;
         } else {
@@ -259,7 +259,7 @@ public final class RegionCommand {
         }
     }
 
-    private static int executeModifyReplaceShapeWithUniverse(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int executeModifyReplaceShapeWithUniversal(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return modifyRegion(context, region -> region.withReplacedShape(region.key(), ProtectionShape.universe()), (oldRegion, modifiedRegion) ->
             Text.literal("Set shape of '" + modifiedRegion.key() + "' to ").append(modifiedRegion.shapes().displayShort()));
     }
@@ -415,11 +415,10 @@ public final class RegionCommand {
 
         if (builder != null) {
             source.sendFeedback(() -> Text.literal("Started building a shape!\nUse ")
-                    .append(Text.literal("/region shape add").formatted(Formatting.GRAY))
-                    .append(" to add primitives to this shape, and ")
-                    .append(Text.literal("/region shape finish").formatted(Formatting.GRAY))
-                    .append(" to add it to a region."),
-                false);
+                .append(Text.literal("/region shape add").formatted(Formatting.GRAY))
+                .append(" to add primitives to this shape, and ")
+                .append(Text.literal("/region shape finish").formatted(Formatting.GRAY))
+                .append(" to add it to a region."), false);
             return Command.SINGLE_SUCCESS;
         } else {
             throw ALREADY_BUILDING.create();
@@ -460,7 +459,7 @@ public final class RegionCommand {
         return addShape(context.getSource(), ProtectionShape.dimension(dimension));
     }
 
-    private static int executeShapeAddUniverse(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int executeShapeAddUniversal(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return addShape(context.getSource(), ProtectionShape.universe());
     }
 
