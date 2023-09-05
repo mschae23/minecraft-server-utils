@@ -9,7 +9,7 @@ import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import de.martenschaefer.serverutils.ServerUtilsMod;
-import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
+import de.martenschaefer.serverutils.event.BroadcastMessageEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -33,7 +33,7 @@ public abstract class TameableEntityMixin extends AnimalEntity {
         }
 
         if (this.getWorld() instanceof ServerWorld world) {
-            AnnounceEntityDeathEvent.EVENT.invoker().announce(world, this, message);
+            world.getServer().getPlayerManager().broadcast(message, false);
         }
     }
 }

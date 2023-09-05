@@ -1,13 +1,17 @@
 package de.martenschaefer.serverutils.mixin.chat;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import de.martenschaefer.serverutils.ModUtils;
 import de.martenschaefer.serverutils.ServerUtilsMod;
+import de.martenschaefer.serverutils.event.BroadcastMessageEvent;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerManager.class)
-public class PlayerManagerMixin {
+public abstract class PlayerManagerMixin {
     /**
      * @author mschae23
      * @reason This is a private method that gets a nullable player; there are two methods that can call it,
@@ -49,8 +53,16 @@ public class PlayerManagerMixin {
         }
     }
 
+    @Inject(method = "broadcast(Lnet/minecraft/text/Text;Ljava/util/function/Function;Z)V", at = @At("TAIL"))
+    private void injectAtBroadcast(Text message, Function<ServerPlayerEntity, Text> playerMessageFactory, boolean overlay, CallbackInfo ci) {
+        BroadcastMessageEvent.EVENT.invoker().announce(this.getServer(), message);
+    }
+
     @Shadow
     private void broadcast(SignedMessage message, Predicate<ServerPlayerEntity> shouldSendFiltered, @Nullable ServerPlayerEntity sender, MessageType.Parameters params) {
         throw new IllegalStateException();
     }
+
+    @Shadow
+    public abstract MinecraftServer getServer();
 }

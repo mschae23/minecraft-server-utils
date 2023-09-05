@@ -1,15 +1,18 @@
 package de.martenschaefer.serverutils.chat;
 
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import de.martenschaefer.serverutils.ModUtils;
+import com.mojang.authlib.GameProfile;
 import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.node.NonTransformableNode;
@@ -23,15 +26,22 @@ import net.luckperms.api.context.MutableContextSet;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class LuckPermsMessageDecorator {
     private LuckPermsMessageDecorator() {
     }
 
-    public static Text process(@NotNull ServerPlayerEntity sender, Text message, MessageType.Parameters params) {
-        User user = ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender);
+    public static CompletableFuture<Text> processFromDiscord(MinecraftServer server, @NotNull UUID senderUuid, String senderName, Text message, MessageType.Parameters params) {
+        return ModUtils.getLuckPerms().getUserManager().loadUser(senderUuid).thenComposeAsync(user -> process(server, user, null, senderName, PlaceholderContext.of(new GameProfile(senderUuid, user.getUsername()), server), message, params, true), server);
+    }
 
-        StaticMessageType type = getMessageTypeId(sender.getWorld().getRegistryManager(), params);
+    public static CompletableFuture<Text> process(@NotNull ServerPlayerEntity sender, Text message, MessageType.Parameters params) {
+        return process(sender.getServerWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getEntityName(), PlaceholderContext.of(sender), message, params, false);
+    }
+
+    private static CompletableFuture<Text> process(MinecraftServer server, @NotNull User user, @Nullable ServerPlayerEntity sender, @NotNull String senderName, PlaceholderContext placeholderContext, Text message, MessageType.Parameters params, boolean discord) {
+        StaticMessageType type = getMessageTypeId(server.getRegistryManager(), params);
         QueryOptions previousQueryOptions = user.getQueryOptions();
         MutableContextSet context = previousQueryOptions.context().mutableCopy();
         context.add("message_type", switch (type) {
@@ -48,6 +58,7 @@ public final class LuckPermsMessageDecorator {
             case TEAM_MSG_COMMAND_INCOMING, TEAM_MSG_COMMAND_OUTGOING -> "true";
             default -> "false";
         });
+        context.add("message_discord", discord ? "true" : "false");
 
         QueryOptions options = user.getQueryOptions().toBuilder().context(context).build();
 
@@ -56,24 +67,16 @@ public final class LuckPermsMessageDecorator {
         String colorName = user.getCachedData().getMetaData(options).getMetaValue("username-color");
         Formatting usernameFormatting = ModUtils.getUsernameFormatting(colorName);
 
-        if (prefix == null) {
-            prefix = "";
-        }
-
-        if (suffix == null) {
-            suffix = "";
-        }
-
-        return processFromCommandSource(sender.getCommandSource(), sender.getDisplayName(), prefix, suffix, usernameFormatting,
-            message, params, Optional.of(type), ModUtils.allowUnsafeChat(sender));
+        return (sender == null ? ModUtils.allowUnsafeChat(user.getUniqueId()) : CompletableFuture.completedFuture(ModUtils.allowUnsafeChat(sender))).thenApplyAsync(allowUnsafeChat ->
+            process(server, placeholderContext, senderName, prefix != null ? prefix : "", suffix != null ? suffix : "", usernameFormatting,
+            message, params, Optional.of(type), allowUnsafeChat), server);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static Text processFromCommandSource(@NotNull ServerCommandSource source, Text senderName,
-                                                @NotNull String prefix, @NotNull String suffix, @NotNull Formatting usernameFormatting,
-                                                Text message,
-                                                MessageType.Parameters params, Optional<StaticMessageType> typeOption, boolean allowUnsafe) {
-        PlaceholderContext placeholderContext = PlaceholderContext.of(source);
+    public static Text process(MinecraftServer server, PlaceholderContext placeholderContext, String senderName,
+                               @NotNull String prefix, @NotNull String suffix, @NotNull Formatting usernameFormatting,
+                               Text message,
+                               MessageType.Parameters params, Optional<StaticMessageType> typeOption, boolean allowUnsafe) {
         ParserContext parserContext = placeholderContext.asParserContext();
         NodeParser parser = ModUtils.createNodeParser(allowUnsafe);
 
@@ -81,10 +84,10 @@ public final class LuckPermsMessageDecorator {
         TextNode parsedSuffix = parser.parseNode(suffix);
         TextNode parsedMessage = parser.parseNode(TextNode.convert(message));
 
-        TextNode formattedName = usernameFormatting == Formatting.RESET ? TextNode.convert(senderName) :
-            new FormattingNode(TextNode.array(TextNode.convert(senderName)), usernameFormatting);
+        TextNode formattedName = usernameFormatting == Formatting.RESET ? TextNode.of(senderName) :
+            new FormattingNode(TextNode.array(TextNode.of(senderName)), usernameFormatting);
 
-        StaticMessageType type = typeOption.orElseGet(() -> getMessageTypeId(source.getWorld().getRegistryManager(), params));
+        StaticMessageType type = typeOption.orElseGet(() -> getMessageTypeId(server.getRegistryManager(), params));
 
         TextNode resultNode;
 
@@ -159,7 +162,7 @@ public final class LuckPermsMessageDecorator {
             }).orElse(StaticMessageType.DEFAULT);
     }
 
-    private enum StaticMessageType {
+    public enum StaticMessageType {
         CHAT,
         SAY_COMMAND,
         MSG_COMMAND_INCOMING,

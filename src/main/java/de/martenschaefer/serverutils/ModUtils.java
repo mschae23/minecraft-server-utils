@@ -3,6 +3,8 @@ package de.martenschaefer.serverutils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -109,25 +111,31 @@ public final class ModUtils {
         return player != null && Permissions.check(player, ServerUtilsMod.MODID + ".chat.unsafe.allow", false);
     }
 
+    public static CompletableFuture<Boolean> allowUnsafeChat(@NotNull UUID uuid) {
+        return Permissions.check(uuid, ServerUtilsMod.MODID + ".chat.unsafe.allow", false);
+    }
+
     public static NodeParser createNodeParser(@Nullable ServerPlayerEntity player) {
         return createNodeParser(allowUnsafeChat(player));
     }
 
-    public static Text decorateText(Text message, ServerCommandSource source, MessageType.Parameters params) {
+    public static CompletableFuture<Text> decorateText(Text message, ServerCommandSource source, MessageType.Parameters params) {
         if (source.getPlayer() != null) {
             return LuckPermsMessageDecorator.process(source.getPlayer(), message, params);
         } else {
-            return LuckPermsMessageDecorator.processFromCommandSource(source, source.getDisplayName(), "", "", Formatting.RESET,
-                message, params, Optional.empty(), source.hasPermissionLevel(3));
+            return CompletableFuture.completedFuture(
+                LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getName(), "", "", Formatting.RESET,
+                message, params, Optional.empty(), source.hasPermissionLevel(3)));
         }
     }
 
     public static void broadcastPlayerChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerPlayerEntity sender, MessageType.Parameters params) {
         boolean verified = manager.verify(message);
-        Text decoratedMessage = LuckPermsMessageDecorator.process(sender, message.getContent(), params);
-        Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
+        LuckPermsMessageDecorator.process(sender, message.getContent(), params).thenAcceptAsync(decoratedMessage -> {
+            Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
 
-        manager.broadcast(loggedText, player -> decoratedMessage, false);
+            manager.broadcast(loggedText, player -> decoratedMessage, false);
+        }, sender.getServerWorld().getServer());
     }
 
     public static void broadcastSourceChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerCommandSource source, MessageType.Parameters params) {
@@ -137,7 +145,7 @@ public final class ModUtils {
         }
 
         boolean verified = manager.verify(message);
-        Text decoratedMessage = LuckPermsMessageDecorator.processFromCommandSource(source, source.getDisplayName(), "", "", Formatting.RESET,
+        Text decoratedMessage = LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getDisplayName().getString(), "", "", Formatting.RESET,
             message.getContent(), params, Optional.empty(), source.hasPermissionLevel(3));
         Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
 
@@ -146,16 +154,16 @@ public final class ModUtils {
 
     public static void sendPrivateMessageFromRedirect(ServerCommandSource source, Collection<ServerPlayerEntity> targets, SignedMessage message) {
         MessageType.Parameters incomingParams = MessageType.params(MessageType.MSG_COMMAND_INCOMING, source);
-        Text decoratedIncomingMessage = ModUtils.decorateText(message.getContent(), source, incomingParams);
-
-        for(ServerPlayerEntity target : targets) {
-            MessageType.Parameters outgoingParams = MessageType.params(MessageType.MSG_COMMAND_OUTGOING, source)
-                .withTargetName(target.getDisplayName());
-            Text decoratedOutgoingMessage = ModUtils.decorateText(message.getContent(), source, outgoingParams);
-
-            source.sendMessage(decoratedOutgoingMessage);
-            target.sendMessage(decoratedIncomingMessage, false);
-        }
+        ModUtils.decorateText(message.getContent(), source, incomingParams).thenAcceptAsync(decoratedIncomingMessage -> {
+            for(ServerPlayerEntity target : targets) {
+                MessageType.Parameters outgoingParams = MessageType.params(MessageType.MSG_COMMAND_OUTGOING, source)
+                    .withTargetName(target.getDisplayName());
+                ModUtils.decorateText(message.getContent(), source, outgoingParams).thenAcceptAsync(decoratedOutgoingMessage -> {
+                    source.sendMessage(decoratedOutgoingMessage);
+                    target.sendMessage(decoratedIncomingMessage, false);
+                }, source.getServer());
+            }
+        }, source.getServer());
     }
 
     public static void sendTeamMessageFromRedirect(ServerCommandSource source, Entity senderEntity, Team team, List<ServerPlayerEntity> recipients, SignedMessage message) {
@@ -170,12 +178,13 @@ public final class ModUtils {
         MessageType.Parameters incomingParams = MessageType.params(MessageType.TEAM_MSG_COMMAND_INCOMING, source).withTargetName(formattedTeamName);
         MessageType.Parameters outgoingParams = MessageType.params(MessageType.TEAM_MSG_COMMAND_OUTGOING, source).withTargetName(formattedTeamName);
 
-        Text decoratedIncomingMessage = ModUtils.decorateText(message.getContent(), source, incomingParams);
-        Text decoratedOutgoingMessage = ModUtils.decorateText(message.getContent(), source, outgoingParams);
-
-        for(ServerPlayerEntity target : recipients) {
-            target.sendMessage(target == senderEntity ? decoratedOutgoingMessage : decoratedIncomingMessage, false);
-        }
+        ModUtils.decorateText(message.getContent(), source, incomingParams).thenAcceptAsync(decoratedIncomingMessage -> {
+            ModUtils.decorateText(message.getContent(), source, outgoingParams).thenAcceptAsync(decoratedOutgoingMessage -> {
+                for(ServerPlayerEntity target : recipients) {
+                    target.sendMessage(target == senderEntity ? decoratedOutgoingMessage : decoratedIncomingMessage, false);
+                }
+            }, source.getServer());
+        }, source.getServer());
     }
 
     // Container Lock

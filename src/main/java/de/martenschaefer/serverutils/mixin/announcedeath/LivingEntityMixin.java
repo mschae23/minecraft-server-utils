@@ -7,7 +7,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import de.martenschaefer.serverutils.ServerUtilsMod;
-import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
+import de.martenschaefer.serverutils.event.BroadcastMessageEvent;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,6 +29,6 @@ public abstract class LivingEntityMixin extends Entity {
             return;
         }
 
-        AnnounceEntityDeathEvent.EVENT.invoker().announce(serverWorld, (LivingEntity) (Object) this, source.getDeathMessage(entity));
+        world.getServer().getPlayerManager().broadcast(source.getDeathMessage(entity), false);
     }
 }

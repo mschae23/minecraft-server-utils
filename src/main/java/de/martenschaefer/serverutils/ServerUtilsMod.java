@@ -19,7 +19,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.util.TriState;
 import de.martenschaefer.config.api.ConfigIo;
 import de.martenschaefer.config.api.ModConfig;
 import de.martenschaefer.serverutils.command.LockCommand;
@@ -33,7 +32,6 @@ import de.martenschaefer.serverutils.config.v2.ServerUtilsConfigV2;
 import de.martenschaefer.serverutils.config.v3.ServerUtilsConfigV3;
 import de.martenschaefer.serverutils.config.v4.ServerUtilsConfigV4;
 import de.martenschaefer.serverutils.config.v5.ServerUtilsConfigV5;
-import de.martenschaefer.serverutils.event.AnnounceEntityDeathEvent;
 import de.martenschaefer.serverutils.registry.ServerUtilsRegistries;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -99,11 +97,6 @@ public class ServerUtilsMod implements ModInitializer {
             newPlayer.sendMessage(text, false);
         });
 
-        AnnounceEntityDeathEvent.EVENT.register((world, entity, message) -> {
-            world.getServer().getPlayerManager().broadcast(message, false);
-            return TriState.DEFAULT;
-        });
-
         // Command registration
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ServerUtilsCommand.register(dispatcher);
@@ -149,8 +142,12 @@ public class ServerUtilsMod implements ModInitializer {
                     builder.add("message_type", "team_msg_command_outgoing");
                     builder.add("message_type", "emote_command");
                     builder.add("message_type", "default");
+
                     builder.add("message_team", "true");
                     builder.add("message_team", "false");
+
+                    builder.add("message_discord", "true");
+                    builder.add("message_discord", "false");
                     return builder.build();
                 }
             });
