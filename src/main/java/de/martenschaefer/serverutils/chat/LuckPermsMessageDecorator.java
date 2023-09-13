@@ -33,14 +33,14 @@ public final class LuckPermsMessageDecorator {
     }
 
     public static CompletableFuture<Text> processFromDiscord(MinecraftServer server, @NotNull UUID senderUuid, String senderName, Text message, MessageType.Parameters params) {
-        return ModUtils.getLuckPerms().getUserManager().loadUser(senderUuid).thenComposeAsync(user -> process(server, user, null, senderName, PlaceholderContext.of(new GameProfile(senderUuid, user.getUsername()), server), message, params, true), server);
+        return ModUtils.getLuckPerms().getUserManager().loadUser(senderUuid).thenComposeAsync(user -> process(server, user, null, Text.literal(senderName), PlaceholderContext.of(new GameProfile(senderUuid, user.getUsername()), server), message, params, true), server);
     }
 
     public static CompletableFuture<Text> process(@NotNull ServerPlayerEntity sender, Text message, MessageType.Parameters params) {
-        return process(sender.getServerWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getEntityName(), PlaceholderContext.of(sender), message, params, false);
+        return process(sender.getServerWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getDisplayName(), PlaceholderContext.of(sender), message, params, false);
     }
 
-    private static CompletableFuture<Text> process(MinecraftServer server, @NotNull User user, @Nullable ServerPlayerEntity sender, @NotNull String senderName, PlaceholderContext placeholderContext, Text message, MessageType.Parameters params, boolean discord) {
+    private static CompletableFuture<Text> process(MinecraftServer server, @NotNull User user, @Nullable ServerPlayerEntity sender, @NotNull Text senderName, PlaceholderContext placeholderContext, Text message, MessageType.Parameters params, boolean discord) {
         StaticMessageType type = getMessageTypeId(server.getRegistryManager(), params);
         QueryOptions previousQueryOptions = user.getQueryOptions();
         MutableContextSet context = previousQueryOptions.context().mutableCopy();
@@ -73,7 +73,7 @@ public final class LuckPermsMessageDecorator {
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static Text process(MinecraftServer server, PlaceholderContext placeholderContext, String senderName,
+    public static Text process(MinecraftServer server, PlaceholderContext placeholderContext, Text senderName,
                                @NotNull String prefix, @NotNull String suffix, @NotNull Formatting usernameFormatting,
                                Text message,
                                MessageType.Parameters params, Optional<StaticMessageType> typeOption, boolean allowUnsafe) {
@@ -84,8 +84,8 @@ public final class LuckPermsMessageDecorator {
         TextNode parsedSuffix = parser.parseNode(suffix);
         TextNode parsedMessage = parser.parseNode(TextNode.convert(message));
 
-        TextNode formattedName = usernameFormatting == Formatting.RESET ? TextNode.of(senderName) :
-            new FormattingNode(TextNode.array(TextNode.of(senderName)), usernameFormatting);
+        TextNode formattedName = usernameFormatting == Formatting.RESET ? TextNode.convert(senderName) :
+            new FormattingNode(TextNode.array(TextNode.convert(senderName)), usernameFormatting);
 
         StaticMessageType type = typeOption.orElseGet(() -> getMessageTypeId(server.getRegistryManager(), params));
 

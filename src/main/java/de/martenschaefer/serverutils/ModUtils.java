@@ -124,7 +124,7 @@ public final class ModUtils {
             return LuckPermsMessageDecorator.process(source.getPlayer(), message, params);
         } else {
             return CompletableFuture.completedFuture(
-                LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getName(), "", "", Formatting.RESET,
+                LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getDisplayName(), "", "", Formatting.RESET,
                 message, params, Optional.empty(), source.hasPermissionLevel(3)));
         }
     }
@@ -145,7 +145,7 @@ public final class ModUtils {
         }
 
         boolean verified = manager.verify(message);
-        Text decoratedMessage = LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getDisplayName().getString(), "", "", Formatting.RESET,
+        Text decoratedMessage = LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getDisplayName(), "", "", Formatting.RESET,
             message.getContent(), params, Optional.empty(), source.hasPermissionLevel(3));
         Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
 
