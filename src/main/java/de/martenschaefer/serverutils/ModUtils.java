@@ -104,7 +104,7 @@ public final class ModUtils {
 
     public static NodeParser createNodeParser(boolean allowUnsafe) {
         return NodeParser.merge(allowUnsafe ? TextParserV1.DEFAULT : TextParserV1.SAFE,
-            PatternPlaceholderParser.of(Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
+            PatternPlaceholderParser.of(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
     }
 
     public static boolean allowUnsafeChat(@Nullable ServerPlayerEntity player) {

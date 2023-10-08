@@ -1,5 +1,6 @@
 package de.martenschaefer.serverutils.state;
 
+import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.MinecraftServer;
@@ -47,6 +48,6 @@ public class VotePersistentState extends PersistentState {
 
     public static VotePersistentState get(MinecraftServer server) {
         PersistentStateManager stateManager = server.getOverworld().getPersistentStateManager();
-        return stateManager.getOrCreate(VotePersistentState::readNbt, VotePersistentState::new, ID);
+        return stateManager.getOrCreate(new Type<>(VotePersistentState::new, VotePersistentState::readNbt, DataFixTypes.LEVEL), ID);
     }
 }
