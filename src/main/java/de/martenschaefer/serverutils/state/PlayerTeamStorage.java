@@ -20,8 +20,8 @@ public class PlayerTeamStorage {
     }
 
     private Team createTeam(ServerPlayerEntity player, Formatting formatting) {
-        Team team = new Team(player.getWorld().getScoreboard(), ServerUtilsMod.MODID + "_player_" + player.getEntityName());
-        team.getPlayerList().add(player.getEntityName());
+        Team team = new Team(player.getWorld().getScoreboard(), ServerUtilsMod.MODID + "_player_" + player.getGameProfile().getName());
+        team.getPlayerList().add(player.getGameProfile().getName());
         team.setColor(formatting);
         return team;
     }
@@ -30,10 +30,10 @@ public class PlayerTeamStorage {
         Formatting formatting = ModUtils.getUsernameFormatting(player);
         Team team = this.createTeam(player, formatting);
         Entry entry = new Entry(team, formatting);
-        this.entries.put(player.getEntityName(), entry);
+        this.entries.put(player.getGameProfile().getName(), entry);
 
         for (ServerPlayerEntity other : player.getServerWorld().getPlayers()) {
-            Entry otherEntry = this.entries.get(other.getEntityName());
+            Entry otherEntry = this.entries.get(other.getGameProfile().getName());
 
             if (otherEntry != null) {
                 player.networkHandler.sendPacket(TeamS2CPacket.updateTeam(otherEntry.team, true));
@@ -50,12 +50,12 @@ public class PlayerTeamStorage {
     }
 
     public void updateFormatting(ServerPlayerEntity player, Formatting formatting) {
-        Entry entry = this.entries.get(player.getEntityName());
+        Entry entry = this.entries.get(player.getGameProfile().getName());
 
         if (entry == null) {
             Team team = this.createTeam(player, formatting);
             entry = new Entry(team, formatting);
-            this.entries.put(player.getEntityName(), entry);
+            this.entries.put(player.getGameProfile().getName(), entry);
         } else if (entry.formatting == formatting) {
             return;
         } else {
@@ -69,7 +69,7 @@ public class PlayerTeamStorage {
     }
 
     public void onPlayerDisconnect(ServerPlayerEntity player) {
-        Entry entry = this.entries.get(player.getEntityName());
+        Entry entry = this.entries.get(player.getGameProfile().getName());
 
         if (entry == null) {
             return;

@@ -4,15 +4,15 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import net.minecraft.text.Texts;
-import net.minecraft.util.dynamic.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 public class VoteOption {
         public static final Codec<VoteOption> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("name").forGetter(VoteOption::getName),
-        Codecs.TEXT.fieldOf("displayname").forGetter(VoteOption::getDisplayName)
+        TextCodecs.CODEC.fieldOf("displayname").forGetter(VoteOption::getDisplayName)
     ).apply(instance, instance.stable(VoteOption::new)));
 
     private final String name;

@@ -178,13 +178,12 @@ public final class ModUtils {
         MessageType.Parameters incomingParams = MessageType.params(MessageType.TEAM_MSG_COMMAND_INCOMING, source).withTargetName(formattedTeamName);
         MessageType.Parameters outgoingParams = MessageType.params(MessageType.TEAM_MSG_COMMAND_OUTGOING, source).withTargetName(formattedTeamName);
 
-        ModUtils.decorateText(message.getContent(), source, incomingParams).thenAcceptAsync(decoratedIncomingMessage -> {
+        ModUtils.decorateText(message.getContent(), source, incomingParams).thenAcceptAsync(decoratedIncomingMessage ->
             ModUtils.decorateText(message.getContent(), source, outgoingParams).thenAcceptAsync(decoratedOutgoingMessage -> {
                 for(ServerPlayerEntity target : recipients) {
                     target.sendMessage(target == senderEntity ? decoratedOutgoingMessage : decoratedIncomingMessage, false);
                 }
-            }, source.getServer());
-        }, source.getServer());
+            }, source.getServer()), source.getServer());
     }
 
     // Container Lock

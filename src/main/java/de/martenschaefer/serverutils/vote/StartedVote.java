@@ -9,16 +9,16 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Uuids;
-import net.minecraft.util.dynamic.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 public final class StartedVote {
     public static final Codec<StartedVote> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("name").forGetter(StartedVote::name),
-        Codecs.TEXT.fieldOf("displayname").forGetter(StartedVote::displayName),
+        TextCodecs.CODEC.fieldOf("displayname").forGetter(StartedVote::displayName),
         Codec.LONG.fieldOf("start_time").forGetter(StartedVote::startTime),
         Codec.INT.fieldOf("seconds_to_live").forGetter(StartedVote::secondsToLive),
         Codec.BOOL.fieldOf("announce_end").forGetter(StartedVote::announceEnd),
