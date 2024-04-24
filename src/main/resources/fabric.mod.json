@@ -11,13 +11,13 @@
   "contact": {
   },
 
-  "license": "MIT License",
+  "license": "LGPL-3.0-or-later",
   "icon": "assets/serverutils/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "de.martenschaefer.serverutils.ServerUtilsMod"
+      "de.mschae23.serverutils.ServerUtilsMod"
     ]
   },
   "mixins": [
@@ -33,5 +33,11 @@
     "luckperms": "^5.4.0"
   },
   "suggests": {
+  },
+
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_1273": ["de/mschae23/serverutils/holder/LockPermissionHolder"]
+    }
   }
 }
