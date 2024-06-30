@@ -75,7 +75,7 @@ public class ServerUtilsMod implements ModInitializer {
 
     private static ServerUtilsConfigV6 CONFIG = LATEST_CONFIG_DEFAULT;
 
-    public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier(MODID, "undecorated_chat"));
+    public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, id("undecorated_chat"));
 
     @Override
     public void onInitialize() {
@@ -202,6 +202,6 @@ public class ServerUtilsMod implements ModInitializer {
     }
 
     public static Identifier id(String path) {
-        return new Identifier(MODID, path);
+        return Identifier.of(MODID, path);
     }
 }
