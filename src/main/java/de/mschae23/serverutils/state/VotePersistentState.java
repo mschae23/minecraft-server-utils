@@ -19,15 +19,13 @@
 
 package de.mschae23.serverutils.state;
 
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
-import de.mschae23.serverutils.ServerUtilsMod;
 import com.mojang.datafixers.util.Pair;
+import de.mschae23.serverutils.ServerUtilsMod;
 
 public class VotePersistentState extends PersistentState {
     public static final String ID = ServerUtilsMod.MODID + "_vote";
@@ -52,14 +50,15 @@ public class VotePersistentState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound root, RegistryWrapper.WrapperLookup wrapperLookup) {
+    public NbtCompound writeNbt(NbtCompound root) {
         VoteStorage.CODEC.encodeStart(NbtOps.INSTANCE, this.storage)
-            .ifSuccess(result -> root.put("vote_storage", result))
-            .ifError(partial -> ServerUtilsMod.LOGGER.error("Error writing vote data as persistent state: " + partial.message()));
+            .get()
+            .ifLeft(result -> root.put("vote_storage", result))
+            .ifRight(partial -> ServerUtilsMod.LOGGER.error("Error writing vote data as persistent state: {}", partial.message()));
         return root;
     }
 
-    private static VotePersistentState readNbt(NbtCompound root, RegistryWrapper.WrapperLookup wrapperLookup) {
+    private static VotePersistentState readNbt(NbtCompound root) {
         return VoteStorage.CODEC.decode(NbtOps.INSTANCE, root.get("vote_storage"))
             .map(Pair::getFirst)
             .result()
@@ -68,6 +67,6 @@ public class VotePersistentState extends PersistentState {
 
     public static VotePersistentState get(MinecraftServer server) {
         PersistentStateManager stateManager = server.getOverworld().getPersistentStateManager();
-        return stateManager.getOrCreate(new Type<>(VotePersistentState::new, VotePersistentState::readNbt, DataFixTypes.LEVEL), ID);
+        return stateManager.getOrCreate(VotePersistentState::readNbt, VotePersistentState::new, ID);
     }
 }

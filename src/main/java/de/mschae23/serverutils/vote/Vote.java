@@ -26,15 +26,15 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
 import net.minecraft.text.Texts;
+import net.minecraft.util.dynamic.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 public class Vote {
     public static final Codec<Vote> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("name").forGetter(Vote::getName),
-        TextCodecs.CODEC.fieldOf("displayname").forGetter(Vote::getDisplayName),
+        Codecs.TEXT.fieldOf("displayname").forGetter(Vote::getDisplayName),
         Codec.INT.fieldOf("seconds_to_live").forGetter(Vote::getSecondsToLive),
         Codec.BOOL.fieldOf("announce_end").forGetter(Vote::shouldAnnounceEnd),
         Codec.STRING.fieldOf("permission").forGetter(Vote::getPermission),

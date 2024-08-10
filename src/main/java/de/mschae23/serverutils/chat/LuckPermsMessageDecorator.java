@@ -118,9 +118,9 @@ public final class LuckPermsMessageDecorator {
                 TextNode.of("[PM <-] "), parsedPrefix, new NonTransformableNode(TextNode.of("<")), formattedName,
                 new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage),
                 TextColor.fromFormatting(Formatting.GRAY))), true);
-        } else if (type == StaticMessageType.MSG_COMMAND_OUTGOING && params.targetName().isPresent()) {
+        } else if (type == StaticMessageType.MSG_COMMAND_OUTGOING && params.targetName() != null) {
             resultNode = new ItalicNode(TextNode.array(new ColorNode(TextNode.array(
-                TextNode.wrap(TextNode.of("[PM -> "), TextNode.convert(params.targetName().get()), TextNode.of("] ")),
+                TextNode.wrap(TextNode.of("[PM -> "), TextNode.convert(params.targetName()), TextNode.of("] ")),
                 parsedPrefix, new NonTransformableNode(TextNode.of("<")), formattedName,
                 new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage),
                 TextColor.fromFormatting(Formatting.GRAY))), true);
@@ -129,9 +129,9 @@ public final class LuckPermsMessageDecorator {
                 TextNode.of("[PM ->] "), parsedPrefix, new NonTransformableNode(TextNode.of("<")), formattedName,
                 new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage),
                 TextColor.fromFormatting(Formatting.GRAY))), true);
-        } else if (type == StaticMessageType.TEAM_MSG_COMMAND_INCOMING && params.targetName().isPresent()) {
+        } else if (type == StaticMessageType.TEAM_MSG_COMMAND_INCOMING && params.targetName() != null) {
             resultNode = TextNode.wrap(
-                new ColorNode(TextNode.array(TextNode.of("[TM <- "), TextNode.convert(params.targetName().get()), TextNode.of("] ")),
+                new ColorNode(TextNode.array(TextNode.of("[TM <- "), TextNode.convert(params.targetName()), TextNode.of("] ")),
                     TextColor.fromFormatting(Formatting.GRAY)),
                 parsedPrefix, new NonTransformableNode(TextNode.of("<")), formattedName,
                 new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage);
@@ -140,9 +140,9 @@ public final class LuckPermsMessageDecorator {
                 new ColorNode(TextNode.array(TextNode.of("[TM <-] ")), TextColor.fromFormatting(Formatting.GRAY)),
                 parsedPrefix, new NonTransformableNode(TextNode.of("<")), formattedName,
                 new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage);
-        } else if (type == StaticMessageType.TEAM_MSG_COMMAND_OUTGOING && params.targetName().isPresent()) {
+        } else if (type == StaticMessageType.TEAM_MSG_COMMAND_OUTGOING && params.targetName() != null) {
             resultNode = TextNode.wrap(
-                new ColorNode(TextNode.array(TextNode.of("[TM -> "), TextNode.convert(params.targetName().get()), TextNode.of("] ")),
+                new ColorNode(TextNode.array(TextNode.of("[TM -> "), TextNode.convert(params.targetName()), TextNode.of("] ")),
                     TextColor.fromFormatting(Formatting.GRAY)),
                 parsedPrefix, new NonTransformableNode(TextNode.of("<")), formattedName,
                 new NonTransformableNode(TextNode.of("> ")), parsedSuffix, parsedMessage);
@@ -162,7 +162,7 @@ public final class LuckPermsMessageDecorator {
     }
 
     private static StaticMessageType getMessageTypeId(DynamicRegistryManager manager, MessageType.Parameters params) {
-        return params.type().getKey().or(() -> manager.get(RegistryKeys.MESSAGE_TYPE).getKey(params.type().value()))
+        return manager.get(RegistryKeys.MESSAGE_TYPE).getKey(params.type())
             .map(key -> {
                 if (!"minecraft".equals(key.getValue().getNamespace())) {
                     return StaticMessageType.DEFAULT;

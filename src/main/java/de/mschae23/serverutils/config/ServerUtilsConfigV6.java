@@ -19,9 +19,9 @@
 
 package de.mschae23.serverutils.config;
 
-import com.mojang.serialization.MapCodec;
+import de.martenschaefer.config.api.ModConfig;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import de.mschae23.config.api.ModConfig;
 import de.mschae23.serverutils.config.command.CommandConfig;
 
 public record ServerUtilsConfigV6(CommandConfig command,
@@ -29,7 +29,7 @@ public record ServerUtilsConfigV6(CommandConfig command,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
                                   MiscConfig misc) implements ModConfig<ServerUtilsConfigV6> {
-    public static final MapCodec<ServerUtilsConfigV6> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    public static final Codec<ServerUtilsConfigV6> TYPE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV6::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV6::chat),
         ContainerLockConfig.CODEC.fieldOf("container_lock").forGetter(ServerUtilsConfigV6::lock),

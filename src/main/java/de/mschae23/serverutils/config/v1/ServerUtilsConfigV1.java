@@ -19,9 +19,10 @@
 
 package de.mschae23.serverutils.config.v1;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import de.mschae23.config.api.ModConfig;
+import de.martenschaefer.config.api.ModConfig;
 import de.mschae23.serverutils.config.BroadcastEntityDeathConfig;
 import de.mschae23.serverutils.config.ChatConfig;
 import de.mschae23.serverutils.config.ContainerLockConfig;
@@ -38,7 +39,7 @@ public record ServerUtilsConfigV1(CommandConfig command,
                                   DeathCoordsConfig deathCoords,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock) implements ModConfig<ServerUtilsConfigV6> {
-    public static final MapCodec<ServerUtilsConfigV1> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    public static final Codec<ServerUtilsConfigV1> TYPE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV1::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV1::chat),
         DeathCoordsConfig.CODEC.fieldOf("death_coords").forGetter(ServerUtilsConfigV1::deathCoords),

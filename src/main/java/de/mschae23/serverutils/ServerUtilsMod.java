@@ -38,8 +38,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import de.mschae23.config.api.ConfigIo;
-import de.mschae23.config.api.ModConfig;
+import de.martenschaefer.config.api.ConfigIo;
+import de.martenschaefer.config.api.ModConfig;
 import de.mschae23.serverutils.command.LockCommand;
 import de.mschae23.serverutils.command.PosCommand;
 import de.mschae23.serverutils.command.ServerUtilsCommand;
@@ -98,10 +98,10 @@ public class ServerUtilsMod implements ModInitializer {
             GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getWorld().getRegistryKey(), oldPlayer.getBlockPos()));
 
             MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))
-                .append(ModUtils.getCoordinateText(deathPos.pos()));
+                .append(ModUtils.getCoordinateText(deathPos.getPos()));
 
             if (newPlayer.getLastDeathPos().isPresent()) {
-                text.append(" in ").append(Text.literal(deathPos.dimension().getValue().toString()).formatted(Formatting.YELLOW));
+                text.append(" in ").append(Text.literal(deathPos.getDimension().getValue().toString()).formatted(Formatting.YELLOW));
             }
 
             if (inPublicChat) {
