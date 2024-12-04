@@ -1,25 +1,22 @@
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version '1.9-SNAPSHOT'
     id 'maven-publish'
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
-archivesBaseName = project.archives_base_name
 version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
-repositories {
-    mavenLocal()
 
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
     maven {
-        // name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/mschae23/codec-config-api")
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-        }
+        url = uri('https://mschae23.de/git/api/packages/mschae23/maven')
     }
 
     maven {
@@ -46,8 +43,8 @@ dependencies {
         "fabric-events-interaction-v0"
     ].forEach { modImplementation fabricApi.module(it, project.fabric_api_version) }
 
-    modImplementation "de.martenschaefer:codec-config-api:${project.codec_config_api_version}"
-    include "de.martenschaefer:codec-config-api:${project.codec_config_api_version}"
+    modImplementation "de.mschae23:codec-config-api:${project.codec_config_api_version}"
+    include "de.mschae23:codec-config-api:${project.codec_config_api_version}"
 
     modImplementation "net.luckperms:api:${project.luckperms_api_version}"
     modImplementation "me.lucko:fabric-permissions-api:${project.permission_api_version}"
@@ -90,19 +87,25 @@ jar {
 
 publishing {
     publications {
-        gpr(MavenPublication) {
+        mod(MavenPublication) {
             from components.java
         }
     }
 
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/mschae23/minecraft-server-utils")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            name = "Forgejo"
+            url = uri("https://mschae23.de/git/api/packages/mschae23/maven")
+
+            credentials(HttpHeaderCredentials) {
+                name = "Authorization"
+                value = "token ${System.getenv("FORGEJO_PACKAGES_TOKEN")}"
+            }
+
+            authentication {
+                header(HttpHeaderAuthentication)
             }
         }
+
     }
 }

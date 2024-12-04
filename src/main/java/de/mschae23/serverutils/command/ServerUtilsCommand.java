@@ -25,16 +25,16 @@ import java.util.stream.Stream;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import de.mschae23.serverutils.ServerUtilsMod;
-import de.mschae23.serverutils.state.VotePersistentState;
-import de.mschae23.serverutils.state.VoteStorage;
-import de.mschae23.serverutils.vote.Vote;
-import de.mschae23.serverutils.vote.VoteOption;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import de.mschae23.serverutils.ServerUtilsMod;
+import de.mschae23.serverutils.state.VotePersistentState;
+import de.mschae23.serverutils.state.VoteStorage;
+import de.mschae23.serverutils.vote.Vote;
+import de.mschae23.serverutils.vote.VoteOption;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class ServerUtilsCommand {

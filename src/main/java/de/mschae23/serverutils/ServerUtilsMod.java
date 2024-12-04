@@ -38,22 +38,17 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import de.martenschaefer.config.api.ConfigIo;
-import de.martenschaefer.config.api.ModConfig;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import de.mschae23.config.api.ConfigIo;
+import de.mschae23.config.api.ModConfig;
 import de.mschae23.serverutils.command.LockCommand;
 import de.mschae23.serverutils.command.PosCommand;
 import de.mschae23.serverutils.command.ServerUtilsCommand;
 import de.mschae23.serverutils.command.UnlockCommand;
 import de.mschae23.serverutils.command.VoteCommand;
 import de.mschae23.serverutils.config.ServerUtilsConfigV6;
-import de.mschae23.serverutils.config.v1.ServerUtilsConfigV1;
-import de.mschae23.serverutils.config.v2.ServerUtilsConfigV2;
-import de.mschae23.serverutils.config.v3.ServerUtilsConfigV3;
-import de.mschae23.serverutils.config.v4.ServerUtilsConfigV4;
-import de.mschae23.serverutils.config.v5.ServerUtilsConfigV5;
 import de.mschae23.serverutils.registry.ServerUtilsRegistries;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.context.ContextCalculator;
 import net.luckperms.api.context.ContextConsumer;
@@ -71,7 +66,8 @@ public class ServerUtilsMod implements ModInitializer {
 
     private static final ServerUtilsConfigV6 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV6.DEFAULT;
     private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
-    private static final Codec<ModConfig<ServerUtilsConfigV6>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+    private static final Codec<ModConfig<ServerUtilsConfigV6>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION,
+        version -> getConfigType(ServerUtilsConfigV6.VERSIONS, version));
 
     private static ServerUtilsConfigV6 CONFIG = LATEST_CONFIG_DEFAULT;
 
@@ -185,16 +181,16 @@ public class ServerUtilsMod implements ModInitializer {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private static ModConfig.Type<ServerUtilsConfigV6, ?> getConfigType(int version) {
-        return new ModConfig.Type<>(version, switch (version) {
-            case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
-            case 2 -> ServerUtilsConfigV2.TYPE_CODEC;
-            case 3 -> ServerUtilsConfigV3.TYPE_CODEC;
-            case 4 -> ServerUtilsConfigV4.TYPE_CODEC;
-            case 5 -> ServerUtilsConfigV5.TYPE_CODEC;
-            default -> ServerUtilsConfigV6.TYPE_CODEC;
-        });
+    public static <C extends ModConfig<C>> ModConfig.Type<C, ? extends ModConfig<C>> getConfigType(ModConfig.Type<C, ? extends ModConfig<C>>[] versions, int version) {
+        for (int i = versions.length - 1; i >= 0; i--) {
+            ModConfig.Type<C, ? extends ModConfig<C>> v = versions[i];
+
+            if (version == v.version()) {
+                return v;
+            }
+        }
+
+        return versions[versions.length - 1];
     }
 
     public static ServerUtilsConfigV6 getConfig() {

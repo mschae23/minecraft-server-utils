@@ -25,10 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import de.mschae23.serverutils.vote.StartedVote;
-import de.mschae23.serverutils.vote.Vote;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import de.mschae23.serverutils.vote.StartedVote;
+import de.mschae23.serverutils.vote.Vote;
 
 public class VoteStorage {
     public static final Codec<VoteStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(

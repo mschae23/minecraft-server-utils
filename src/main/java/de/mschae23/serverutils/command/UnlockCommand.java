@@ -29,13 +29,13 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import de.mschae23.serverutils.ModUtils;
-import de.mschae23.serverutils.ServerUtilsMod;
-import de.mschae23.serverutils.holder.LockPermissionHolder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import de.mschae23.serverutils.ModUtils;
+import de.mschae23.serverutils.ServerUtilsMod;
+import de.mschae23.serverutils.holder.LockPermissionHolder;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class UnlockCommand {

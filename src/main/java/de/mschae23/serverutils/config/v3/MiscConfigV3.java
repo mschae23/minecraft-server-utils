@@ -19,11 +19,11 @@
 
 package de.mschae23.serverutils.config.v3;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import de.mschae23.serverutils.config.EnableGamemodeSwitcherConfig;
 import de.mschae23.serverutils.config.ItemFrameConfig;
 import de.mschae23.serverutils.config.v4.MiscConfigV4;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 @Deprecated
 public record MiscConfigV3(EnableGamemodeSwitcherConfig enableGamemodeSwitcher) {

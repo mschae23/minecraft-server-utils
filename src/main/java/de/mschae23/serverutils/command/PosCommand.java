@@ -24,11 +24,11 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import de.mschae23.serverutils.ModUtils;
-import de.mschae23.serverutils.ServerUtilsMod;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import de.mschae23.serverutils.ModUtils;
+import de.mschae23.serverutils.ServerUtilsMod;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class PosCommand {

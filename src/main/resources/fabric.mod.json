@@ -3,7 +3,7 @@
   "id": "serverutils",
   "version": "${version}",
 
-  "name": "Server Utils",
+  "name": "Server utils",
   "description": "Some server-side things I find useful.",
   "authors": [
     "mschae23"
