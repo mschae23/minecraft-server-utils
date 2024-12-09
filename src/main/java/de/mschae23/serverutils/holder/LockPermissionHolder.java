@@ -25,5 +25,11 @@ public interface LockPermissionHolder {
     @NotNull
     String getLockPermission();
 
+    /**
+     * Sets the lock permission. This should be used with caution, as this interface is implemented on
+     * {@link net.minecraft.inventory.ContainerLock}, which is a record and therefore expected to be immutable.
+     *
+     * @param permission the lock permission
+     */
     void setLockPermission(String permission);
 }

@@ -20,10 +20,9 @@
 package de.mschae23.serverutils.mixin.announcedeath;
 
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
@@ -43,15 +42,13 @@ public abstract class TameableEntityMixin extends AnimalEntity {
         return ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || instance.getBoolean(rule);
     }
 
-    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;sendMessage(Lnet/minecraft/text/Text;)V"))
-    private void redirectSendMessage(LivingEntity owner, Text message) {
+    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;sendMessage(Lnet/minecraft/text/Text;)V"))
+    private void redirectSendMessage(ServerPlayerEntity owner, Text message) {
         if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled()) {
             owner.sendMessage(message);
             return;
         }
 
-        if (this.getWorld() instanceof ServerWorld world) {
-            world.getServer().getPlayerManager().broadcast(message, false);
-        }
+        owner.getServerWorld().getServer().getPlayerManager().broadcast(message, false);
     }
 }

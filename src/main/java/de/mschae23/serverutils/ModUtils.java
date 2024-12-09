@@ -53,8 +53,8 @@ import de.mschae23.serverutils.state.PlayerTeamStorageContainer;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.parsers.NodeParser;
-import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
-import eu.pb4.placeholders.api.parsers.TextParserV1;
+import eu.pb4.placeholders.api.parsers.TagLikeParser;
+import eu.pb4.placeholders.api.parsers.TagParser;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -122,8 +122,8 @@ public final class ModUtils {
     }
 
     public static NodeParser createNodeParser(boolean allowUnsafe) {
-        return NodeParser.merge(allowUnsafe ? TextParserV1.DEFAULT : TextParserV1.SAFE,
-            PatternPlaceholderParser.of(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
+        return NodeParser.merge(allowUnsafe ? TagParser.DEFAULT : TagParser.DEFAULT_SAFE,
+            TagLikeParser.placeholder(TagLikeParser.PLACEHOLDER_USER, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
     }
 
     public static boolean allowUnsafeChat(@Nullable ServerPlayerEntity player) {
@@ -208,7 +208,11 @@ public final class ModUtils {
     // Container Lock
 
     public static boolean canAlwaysOpen(ContainerLock lock) {
-        return lock.key.isEmpty() && ((LockPermissionHolder) lock).getLockPermission().isEmpty();
+        return lock.predicate().items().isEmpty()
+            && lock.predicate().count().isDummy()
+            && lock.predicate().components().isEmpty()
+            && lock.predicate().subPredicates().isEmpty()
+            && ((LockPermissionHolder) lock).getLockPermission().isEmpty();
     }
 
     public static String getLockPermission(ContainerLockConfig config, LockPermissionHolder lock) {

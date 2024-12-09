@@ -162,7 +162,7 @@ public final class LuckPermsMessageDecorator {
     }
 
     private static StaticMessageType getMessageTypeId(DynamicRegistryManager manager, MessageType.Parameters params) {
-        return params.type().getKey().or(() -> manager.get(RegistryKeys.MESSAGE_TYPE).getKey(params.type().value()))
+        return params.type().getKey().or(() -> manager.getOrThrow(RegistryKeys.MESSAGE_TYPE).getKey(params.type().value()))
             .map(key -> {
                 if (!"minecraft".equals(key.getValue().getNamespace())) {
                     return StaticMessageType.DEFAULT;

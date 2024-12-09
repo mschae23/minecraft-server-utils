@@ -120,7 +120,7 @@ public class ServerUtilsMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ServerUtilsCommand.register(dispatcher);
             PosCommand.register(dispatcher);
-            LockCommand.register(dispatcher);
+            LockCommand.register(dispatcher, registryAccess);
             UnlockCommand.register(dispatcher);
             VoteCommand.register(dispatcher);
         });

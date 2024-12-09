@@ -1,25 +1,18 @@
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version '1.9-SNAPSHOT'
     id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-archivesBaseName = project.archives_base_name
 version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
-repositories {
-    mavenLocal()
+base {
+    archivesName = project.archives_base_name
+}
 
+repositories {
     maven {
-        // name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/mschae23/codec-config-api")
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-        }
+        url = uri('https://mschae23.de/git/api/packages/mschae23/maven')
     }
 
     maven {
@@ -65,7 +58,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }
 
 loom {
@@ -90,18 +83,23 @@ jar {
 
 publishing {
     publications {
-        gpr(MavenPublication) {
+        mod(MavenPublication) {
             from components.java
         }
     }
 
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/mschae23/minecraft-server-utils")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            name = "Forgejo"
+            url = uri("https://mschae23.de/git/api/packages/mschae23/maven")
+
+            credentials(HttpHeaderCredentials) {
+                name = "Authorization"
+                value = "token ${System.getenv("FORGEJO_PACKAGES_TOKEN")}"
+            }
+
+            authentication {
+                header(HttpHeaderAuthentication)
             }
         }
     }

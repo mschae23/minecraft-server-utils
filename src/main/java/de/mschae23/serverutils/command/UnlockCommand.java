@@ -24,18 +24,19 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.inventory.ContainerLock;
+import net.minecraft.predicate.item.ItemPredicate;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import de.mschae23.serverutils.ModUtils;
-import de.mschae23.serverutils.ServerUtilsMod;
-import de.mschae23.serverutils.holder.LockPermissionHolder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import de.mschae23.serverutils.ModUtils;
+import de.mschae23.serverutils.ServerUtilsMod;
+import de.mschae23.serverutils.holder.LockPermissionHolder;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class UnlockCommand {
@@ -44,7 +45,7 @@ public final class UnlockCommand {
     public static final String[] PERMISSIONS = new String[] {
         PERMISSION_ROOT,
         ".command.unlock.all",
-        ".command.unlock.item_name",
+        ".command.unlock.item",
         ".command.unlock.permission",
     };
 
@@ -55,8 +56,8 @@ public final class UnlockCommand {
                 .then(CommandManager.literal("all")
                     .requires(Permissions.require(ServerUtilsMod.MODID + ".command.unlock.all", true))
                     .executes(context -> execute(context, true, true)))
-                .then(CommandManager.literal("item_name")
-                    .requires(Permissions.require(ServerUtilsMod.MODID + ".command.unlock.item_name", true))
+                .then(CommandManager.literal("item")
+                    .requires(Permissions.require(ServerUtilsMod.MODID + ".command.unlock.item", true))
                     .executes(context -> execute(context, true, false)))
                 .then(CommandManager.literal("permission")
                     .requires(Permissions.require(ServerUtilsMod.MODID + ".command.unlock.permission", true))
@@ -64,7 +65,7 @@ public final class UnlockCommand {
             ));
     }
 
-    private static int execute(CommandContext<ServerCommandSource> context, boolean itemName, boolean permission) throws CommandSyntaxException {
+    private static int execute(CommandContext<ServerCommandSource> context, boolean item, boolean permission) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgumentType.getBlockPos(context, "pos");
 
         ServerWorld world = context.getSource().getWorld();
@@ -76,10 +77,11 @@ public final class UnlockCommand {
             if (entity instanceof LockableContainerBlockEntity locked) {
                 ContainerLock lock;
 
-                if (itemName) {
-                    lock = new ContainerLock("");
+                if (item) {
+                    // Can't use ContainerLock.EMPTY because of mutable change with permissions
+                    lock = new ContainerLock(ItemPredicate.Builder.create().build());
                 } else {
-                    lock = new ContainerLock(locked.lock.key);
+                    lock = new ContainerLock(locked.lock.predicate());
                 }
 
                 if (!permission) {

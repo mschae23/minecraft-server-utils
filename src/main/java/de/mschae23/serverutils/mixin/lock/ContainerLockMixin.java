@@ -22,6 +22,7 @@ package de.mschae23.serverutils.mixin.lock;
 import net.minecraft.inventory.ContainerLock;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.registry.RegistryWrapper;
 import de.mschae23.serverutils.ServerUtilsMod;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.holder.LockPermissionHolder;
@@ -43,18 +44,20 @@ public class ContainerLockMixin implements LockPermissionHolder {
     @Unique
     private String serverutils_permission = "";
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Override
     public @NotNull String getLockPermission() {
         return this.serverutils_permission;
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Override
     public void setLockPermission(String permission) {
         this.serverutils_permission = permission;
     }
 
     @Inject(method = "fromNbt", at = @At("RETURN"), cancellable = true)
-    private static void onFromNbt(NbtCompound nbt, CallbackInfoReturnable<ContainerLock> cir) {
+    private static void onFromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries, CallbackInfoReturnable<ContainerLock> cir) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
 
         if (!config.enabled()) {
@@ -68,13 +71,13 @@ public class ContainerLockMixin implements LockPermissionHolder {
             permission = nbt.getString(config.dataKey());
         }
 
-        ContainerLock modified = new ContainerLock(original.key);
+        ContainerLock modified = new ContainerLock(original.predicate());
         ((ContainerLockMixin) (Object) modified).serverutils_permission = permission;
         cir.setReturnValue(modified);
     }
 
     @Inject(method = "writeNbt", at = @At("RETURN"))
-    private void onWriteNbt(NbtCompound nbt, CallbackInfo ci) {
+    private void onWriteNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries, CallbackInfo ci) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
 
         if (!config.enabled()) {
