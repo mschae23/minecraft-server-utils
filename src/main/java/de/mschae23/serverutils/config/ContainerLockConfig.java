@@ -29,5 +29,5 @@ public record ContainerLockConfig(boolean enabled, String dataKey, String permis
         Codec.STRING.fieldOf("key_permission_prefix").forGetter(ContainerLockConfig::permissionPrefix)
     ).apply(instance, instance.stable(ContainerLockConfig::new)));
 
-    public static final ContainerLockConfig DEFAULT = new ContainerLockConfig(true, "LockPermission", "key");
+    public static final ContainerLockConfig DEFAULT = new ContainerLockConfig(true, "lock_permission", "key");
 }
