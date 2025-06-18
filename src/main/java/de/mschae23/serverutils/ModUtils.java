@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
@@ -74,8 +75,8 @@ public final class ModUtils {
     public static MutableText getCoordinateText(BlockPos pos) {
         return Texts.bracketed(Text.translatable("chat.coordinates", pos.getX(), pos.getY(), pos.getZ()))
             .styled(style -> style.withColor(Formatting.GREEN)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + pos.getX() + " " + pos.getY() + " " + pos.getZ()))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("chat.coordinates.tooltip"))));
+                .withClickEvent(new ClickEvent.SuggestCommand("/tp @s " + pos.getX() + " " + pos.getY() + " " + pos.getZ()))
+                .withHoverEvent(new HoverEvent.ShowText(Text.translatable("chat.coordinates.tooltip"))));
     }
 
     public static MutableText getCoordinateTextUnstyled(BlockPos pos) {
@@ -84,7 +85,7 @@ public final class ModUtils {
 
     public static void sendMessage(ServerPlayerEntity player, Text text, boolean inPublicChat) {
         if (inPublicChat) {
-            MinecraftServer server = player.getServerWorld().getServer();
+            MinecraftServer server = player.getWorld().getServer();
             server.getPlayerManager().broadcast(text, false);
         } else {
             player.sendMessage(text, false);
@@ -154,7 +155,7 @@ public final class ModUtils {
             Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
 
             manager.broadcast(loggedText, player -> decoratedMessage, false);
-        }, sender.getServerWorld().getServer());
+        }, sender.getWorld().getServer());
     }
 
     public static void broadcastSourceChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerCommandSource source, MessageType.Parameters params) {
@@ -186,7 +187,7 @@ public final class ModUtils {
     }
 
     public static void sendTeamMessageFromRedirect(ServerCommandSource source, Entity senderEntity, Team team, List<ServerPlayerEntity> recipients, SignedMessage message) {
-        MutableText formattedTeamName = team.getDisplayName().copy().fillStyle(Style.EMPTY.withInsertion(team.getName()).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(team.getName()))));
+        MutableText formattedTeamName = team.getDisplayName().copy().fillStyle(Style.EMPTY.withInsertion(team.getName()).withHoverEvent(new HoverEvent.ShowText(Text.literal(team.getName()))));
         Formatting teamColor = team.getColor();
 
         if (teamColor != Formatting.RESET) {
@@ -211,7 +212,6 @@ public final class ModUtils {
         return lock.predicate().items().isEmpty()
             && lock.predicate().count().isDummy()
             && lock.predicate().components().isEmpty()
-            && lock.predicate().subPredicates().isEmpty()
             && ((LockPermissionHolder) lock).getLockPermission().isEmpty();
     }
 
@@ -226,13 +226,13 @@ public final class ModUtils {
         return permission;
     }
 
-    public static boolean checkLockPermission(ContainerLockConfig config, PlayerEntity player, ContainerLock lock) {
+    public static boolean checkLockPermission(ContainerLockConfig config, Entity entity, ContainerLock lock) {
         LockPermissionHolder lockPermission = (LockPermissionHolder) lock;
 
         if (lockPermission.getLockPermission().isEmpty()) {
-            return lock.canOpen(player.getMainHandStack());
+            return lock.canOpen(Optional.ofNullable(entity.getWeaponStack()).orElse(ItemStack.EMPTY));
         } else {
-            return Permissions.check(player, getLockPermission(config, lockPermission)) && lock.canOpen(player.getMainHandStack());
+            return Permissions.check(entity, getLockPermission(config, lockPermission)) && lock.canOpen(Optional.ofNullable(entity.getWeaponStack()).orElse(ItemStack.EMPTY));
         }
     }
 

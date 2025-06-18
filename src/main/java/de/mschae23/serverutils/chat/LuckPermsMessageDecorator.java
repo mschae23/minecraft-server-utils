@@ -56,7 +56,7 @@ public final class LuckPermsMessageDecorator {
     }
 
     public static CompletableFuture<Text> process(@NotNull ServerPlayerEntity sender, Text message, MessageType.Parameters params) {
-        return process(sender.getServerWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getDisplayName(), PlaceholderContext.of(sender), message, params, false);
+        return process(sender.getWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getDisplayName(), PlaceholderContext.of(sender), message, params, false);
     }
 
     private static CompletableFuture<Text> process(MinecraftServer server, @NotNull User user, @Nullable ServerPlayerEntity sender, @NotNull Text senderName, PlaceholderContext placeholderContext, Text message, MessageType.Parameters params, boolean discord) {

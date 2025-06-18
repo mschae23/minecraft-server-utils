@@ -64,7 +64,7 @@ public final class VoteCommand {
     };
 
     private static final Function<Object, MutableText> FORMAT_NAME = name -> Texts.bracketed(Text.literal((String) name)
-        .fillStyle(Style.EMPTY.withInsertion((String) name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal((String) name)))));
+        .fillStyle(Style.EMPTY.withInsertion((String) name).withHoverEvent(new HoverEvent.ShowText(Text.literal((String) name)))));
 
     private static final DynamicCommandExceptionType ADD_DUPLICATE_EXCEPTION = new DynamicCommandExceptionType(name -> Text.empty()
         .append("Vote ").append((Text) name).append(" already exists."));
@@ -153,8 +153,8 @@ public final class VoteCommand {
             VoteOption option = options.get(i);
 
             result.append(" ").append(Texts.bracketed(option.getDisplayName().copy().fillStyle(Style.EMPTY
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/vote " + name + " " + option.getName()))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(option.getName()))))));
+                .withClickEvent(new ClickEvent.SuggestCommand("/vote " + name + " " + option.getName()))
+                .withHoverEvent(new HoverEvent.ShowText(Text.literal(option.getName()))))));
 
             if (i < options.size() - 1) {
                 result.append("\n");
@@ -247,7 +247,7 @@ public final class VoteCommand {
         MutableText formattedName = unstartedVoteOption.map(Vote::getFormattedName)
             .or(() -> startedVoteOption.map(StartedVote::getFormattedName))
             .orElseGet(() -> Texts.bracketed(Text.literal(name)
-                .fillStyle(Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name))))));
+                .fillStyle(Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent.ShowText(Text.literal(name))))));
 
         boolean success = storage.removeVote(name);
 

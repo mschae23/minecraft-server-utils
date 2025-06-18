@@ -22,6 +22,7 @@ package de.mschae23.serverutils.mixin;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
@@ -80,10 +81,10 @@ public class ServerPlayerInteractionManagerMixin {
         } */
     }
 
-    @Redirect(method = "processBlockBreakingAction", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;canPlayerModifyAt(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/math/BlockPos;)Z"))
-    private boolean redirectCanPlayerModifyAt(ServerWorld world, PlayerEntity player, BlockPos pos) {
+    @Redirect(method = "processBlockBreakingAction", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;canEntityModifyAt(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/BlockPos;)Z"))
+    private boolean redirectCanEntityModifyAt(ServerWorld world, Entity entity, BlockPos pos) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
-        boolean original = world.canPlayerModifyAt(player, pos);
+        boolean original = world.canEntityModifyAt(entity, pos);
 
         if (!config.enabled() || !original) {
             return original;
@@ -95,11 +96,14 @@ public class ServerPlayerInteractionManagerMixin {
             BlockEntity blockEntity = world.getBlockEntity(pos);
 
             if (blockEntity instanceof LockableContainerBlockEntity lockedBlockEntity) {
-                boolean hasPermission = ModUtils.checkLockPermission(config, player, lockedBlockEntity.lock);
+                boolean hasPermission = ModUtils.checkLockPermission(config, entity, lockedBlockEntity.lock);
 
                 if (!hasPermission) {
-                    player.sendMessage(Text.translatable("container.isLocked", lockedBlockEntity.getDisplayName()), true);
-                    player.playSound(SoundEvents.BLOCK_CHEST_LOCKED, 1.0F, 1.0F);
+                    if (entity instanceof PlayerEntity player) {
+                        player.sendMessage(Text.translatable("container.isLocked", lockedBlockEntity.getDisplayName()), true);
+                    }
+
+                    entity.playSound(SoundEvents.BLOCK_CHEST_LOCKED, 1.0F, 1.0F);
                 }
 
                 return hasPermission;

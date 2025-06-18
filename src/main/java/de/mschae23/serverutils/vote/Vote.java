@@ -56,7 +56,7 @@ public class Vote {
         this.announceEnd = announceEnd;
         this.permission = permission;
         this.options = new ArrayList<>(options);
-        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
+        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent.ShowText(Text.literal(name)));
     }
 
     public Vote(String name) {

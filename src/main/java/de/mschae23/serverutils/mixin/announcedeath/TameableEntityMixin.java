@@ -49,6 +49,6 @@ public abstract class TameableEntityMixin extends AnimalEntity {
             return;
         }
 
-        owner.getServerWorld().getServer().getPlayerManager().broadcast(message, false);
+        owner.getWorld().getServer().getPlayerManager().broadcast(message, false);
     }
 }

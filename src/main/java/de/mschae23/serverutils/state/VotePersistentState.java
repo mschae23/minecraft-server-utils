@@ -20,17 +20,20 @@
 package de.mschae23.serverutils.state;
 
 import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import de.mschae23.serverutils.ServerUtilsMod;
-import com.mojang.datafixers.util.Pair;
 
 public class VotePersistentState extends PersistentState {
     public static final String ID = ServerUtilsMod.MODID + "_vote";
+
+    public static final Codec<VotePersistentState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+        VoteStorage.CODEC.fieldOf("vote_storage").forGetter(VotePersistentState::getStorage)
+    ).apply(instance, instance.stable(VotePersistentState::new)));
 
     private final VoteStorage storage;
 
@@ -51,23 +54,8 @@ public class VotePersistentState extends PersistentState {
         return true;
     }
 
-    @Override
-    public NbtCompound writeNbt(NbtCompound root, RegistryWrapper.WrapperLookup wrapperLookup) {
-        VoteStorage.CODEC.encodeStart(NbtOps.INSTANCE, this.storage)
-            .ifSuccess(result -> root.put("vote_storage", result))
-            .ifError(partial -> ServerUtilsMod.LOGGER.error("Error writing vote data as persistent state: " + partial.message()));
-        return root;
-    }
-
-    private static VotePersistentState readNbt(NbtCompound root, RegistryWrapper.WrapperLookup wrapperLookup) {
-        return VoteStorage.CODEC.decode(NbtOps.INSTANCE, root.get("vote_storage"))
-            .map(Pair::getFirst)
-            .result()
-            .map(VotePersistentState::new).orElseGet(VotePersistentState::new);
-    }
-
     public static VotePersistentState get(MinecraftServer server) {
         PersistentStateManager stateManager = server.getOverworld().getPersistentStateManager();
-        return stateManager.getOrCreate(new Type<>(VotePersistentState::new, VotePersistentState::readNbt, DataFixTypes.LEVEL), ID);
+        return stateManager.getOrCreate(new PersistentStateType<>(ID, VotePersistentState::new, CODEC, DataFixTypes.LEVEL));
     }
 }

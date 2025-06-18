@@ -68,7 +68,7 @@ public final class StartedVote {
         this.permission = permission;
         this.options = options;
         this.votes = new HashMap<>(votes);
-        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
+        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent.ShowText(Text.literal(name)));
     }
 
     public String name() {

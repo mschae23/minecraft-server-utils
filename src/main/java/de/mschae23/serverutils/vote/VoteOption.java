@@ -41,7 +41,7 @@ public class VoteOption {
     public VoteOption(String name, Text displayName) {
         this.name = name;
         this.displayName = displayName;
-        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(name)));
+        this.nameStyle = Style.EMPTY.withInsertion(name).withHoverEvent(new HoverEvent.ShowText(Text.literal(name)));
     }
 
     public VoteOption(String name) {

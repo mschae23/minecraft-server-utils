@@ -19,10 +19,11 @@
 
 package de.mschae23.serverutils.mixin.lock;
 
+import java.util.Optional;
 import net.minecraft.inventory.ContainerLock;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
+import com.mojang.serialization.Codec;
 import de.mschae23.serverutils.ServerUtilsMod;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.holder.LockPermissionHolder;
@@ -56,8 +57,8 @@ public class ContainerLockMixin implements LockPermissionHolder {
         this.serverutils_permission = permission;
     }
 
-    @Inject(method = "fromNbt", at = @At("RETURN"), cancellable = true)
-    private static void onFromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries, CallbackInfoReturnable<ContainerLock> cir) {
+    @Inject(method = "read", at = @At("RETURN"), cancellable = true)
+    private static void onRead(ReadView view, CallbackInfoReturnable<ContainerLock> cir) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
 
         if (!config.enabled()) {
@@ -65,19 +66,15 @@ public class ContainerLockMixin implements LockPermissionHolder {
         }
 
         ContainerLock original = cir.getReturnValue();
-        String permission = "";
-
-        if (nbt.contains(config.dataKey(), NbtElement.STRING_TYPE)) {
-            permission = nbt.getString(config.dataKey());
-        }
+        Optional<String> permission = view.read(config.dataKey(), Codec.STRING);
 
         ContainerLock modified = new ContainerLock(original.predicate());
-        ((ContainerLockMixin) (Object) modified).serverutils_permission = permission;
+        ((ContainerLockMixin) (Object) modified).serverutils_permission = permission.orElse("");
         cir.setReturnValue(modified);
     }
 
-    @Inject(method = "writeNbt", at = @At("RETURN"))
-    private void onWriteNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries, CallbackInfo ci) {
+    @Inject(method = "write", at = @At("RETURN"))
+    private void onWriteNbt(WriteView view, CallbackInfo ci) {
         ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
 
         if (!config.enabled()) {
@@ -85,7 +82,7 @@ public class ContainerLockMixin implements LockPermissionHolder {
         }
 
         if (!this.serverutils_permission.isEmpty()) {
-            nbt.putString(config.dataKey(), this.serverutils_permission);
+            view.putString(config.dataKey(), this.serverutils_permission);
         }
     }
 
