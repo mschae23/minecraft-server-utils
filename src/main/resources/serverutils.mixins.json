@@ -10,6 +10,7 @@
     "PlayerManagerMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayerInteractionManagerMixin",
+    "WaypointConfigMixin",
     "announcedeath.LivingEntityMixin",
     "announcedeath.TameableEntityMixin",
     "announcedeath.VillagerEntityMixin",
