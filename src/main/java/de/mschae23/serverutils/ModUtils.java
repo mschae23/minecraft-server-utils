@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import net.minecraft.command.DefaultPermissions;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
@@ -51,7 +52,7 @@ import de.mschae23.serverutils.chat.LuckPermsMessageDecorator;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.holder.LockPermissionHolder;
 import de.mschae23.serverutils.state.PlayerTeamStorageContainer;
-import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.parsers.NodeParser;
 import eu.pb4.placeholders.api.parsers.TagLikeParser;
@@ -85,10 +86,10 @@ public final class ModUtils {
 
     public static void sendMessage(ServerPlayerEntity player, Text text, boolean inPublicChat) {
         if (inPublicChat) {
-            MinecraftServer server = player.getWorld().getServer();
+            MinecraftServer server = player.getEntityWorld().getServer();
             server.getPlayerManager().broadcast(text, false);
         } else {
-            player.sendMessage(text, false);
+            player.sendMessage(text);
         }
     }
 
@@ -124,7 +125,7 @@ public final class ModUtils {
 
     public static NodeParser createNodeParser(boolean allowUnsafe) {
         return NodeParser.merge(allowUnsafe ? TagParser.DEFAULT : TagParser.DEFAULT_SAFE,
-            TagLikeParser.placeholder(TagLikeParser.PLACEHOLDER_USER, PlaceholderContext.KEY, Placeholders.DEFAULT_PLACEHOLDER_GETTER));
+            TagLikeParser.placeholder(TagLikeParser.PLACEHOLDER_USER, ServerPlaceholderContext.SERVER_KEY, Placeholders.SERVER_PLACEHOLDER_GETTER));
     }
 
     public static boolean allowUnsafeChat(@Nullable ServerPlayerEntity player) {
@@ -144,18 +145,18 @@ public final class ModUtils {
             return LuckPermsMessageDecorator.process(source.getPlayer(), message, params);
         } else {
             return CompletableFuture.completedFuture(
-                LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getDisplayName(), "", "", Formatting.RESET,
-                message, params, Optional.empty(), source.hasPermissionLevel(3)));
+                LuckPermsMessageDecorator.process(source.getServer(), ServerPlaceholderContext.of(source), source.getDisplayName(), "", "", Formatting.RESET,
+                message, params, Optional.empty(), source.getPermissions().hasPermission(DefaultPermissions.ADMINS)));
         }
     }
 
     public static void broadcastPlayerChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerPlayerEntity sender, MessageType.Parameters params) {
         boolean verified = manager.verify(message);
         LuckPermsMessageDecorator.process(sender, message.getContent(), params).thenAcceptAsync(decoratedMessage -> {
-            Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
+            Text loggedText = verified ? decoratedMessage : Text.literal("[not secure] ").append(decoratedMessage);
 
             manager.broadcast(loggedText, player -> decoratedMessage, false);
-        }, sender.getWorld().getServer());
+        }, sender.getEntityWorld().getServer());
     }
 
     public static void broadcastSourceChatMessageFromRedirect(PlayerManager manager, SignedMessage message, ServerCommandSource source, MessageType.Parameters params) {
@@ -165,9 +166,9 @@ public final class ModUtils {
         }
 
         boolean verified = manager.verify(message);
-        Text decoratedMessage = LuckPermsMessageDecorator.process(source.getServer(), PlaceholderContext.of(source), source.getDisplayName(), "", "", Formatting.RESET,
-            message.getContent(), params, Optional.empty(), source.hasPermissionLevel(3));
-        Text loggedText = verified ? decoratedMessage : Text.literal("[Not Secure] ").append(decoratedMessage);
+        Text decoratedMessage = LuckPermsMessageDecorator.process(source.getServer(), ServerPlaceholderContext.of(source), source.getDisplayName(), "", "", Formatting.RESET,
+            message.getContent(), params, Optional.empty(), source.getPermissions().hasPermission(DefaultPermissions.ADMINS));
+        Text loggedText = verified ? decoratedMessage : Text.literal("[not secure] ").append(decoratedMessage);
 
         manager.broadcast(loggedText, player -> decoratedMessage, false);
     }
@@ -180,7 +181,7 @@ public final class ModUtils {
                     .withTargetName(target.getDisplayName());
                 ModUtils.decorateText(message.getContent(), source, outgoingParams).thenAcceptAsync(decoratedOutgoingMessage -> {
                     source.sendMessage(decoratedOutgoingMessage);
-                    target.sendMessage(decoratedIncomingMessage, false);
+                    target.sendMessage(decoratedIncomingMessage);
                 }, source.getServer());
             }
         }, source.getServer());
@@ -201,7 +202,7 @@ public final class ModUtils {
         ModUtils.decorateText(message.getContent(), source, incomingParams).thenAcceptAsync(decoratedIncomingMessage ->
             ModUtils.decorateText(message.getContent(), source, outgoingParams).thenAcceptAsync(decoratedOutgoingMessage -> {
                 for(ServerPlayerEntity target : recipients) {
-                    target.sendMessage(target == senderEntity ? decoratedOutgoingMessage : decoratedIncomingMessage, false);
+                    target.sendMessage(target == senderEntity ? decoratedOutgoingMessage : decoratedIncomingMessage);
                 }
             }, source.getServer()), source.getServer());
     }
@@ -212,7 +213,7 @@ public final class ModUtils {
         return lock.predicate().items().isEmpty()
             && lock.predicate().count().isDummy()
             && lock.predicate().components().isEmpty()
-            && ((LockPermissionHolder) lock).getLockPermission().isEmpty();
+            && ((LockPermissionHolder)(Object) lock).getLockPermission().isEmpty();
     }
 
     public static String getLockPermission(ContainerLockConfig config, LockPermissionHolder lock) {
@@ -227,7 +228,7 @@ public final class ModUtils {
     }
 
     public static boolean checkLockPermission(ContainerLockConfig config, Entity entity, ContainerLock lock) {
-        LockPermissionHolder lockPermission = (LockPermissionHolder) lock;
+        LockPermissionHolder lockPermission = (LockPermissionHolder)(Object) lock;
 
         if (lockPermission.getLockPermission().isEmpty()) {
             return lock.canOpen(Optional.ofNullable(entity.getWeaponStack()).orElse(ItemStack.EMPTY));

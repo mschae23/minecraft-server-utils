@@ -43,7 +43,7 @@ public class HopperBlockEntityMixin {
         if (entity instanceof LockableContainerBlockEntity locked) {
             ContainerLock lock = locked.lock;
 
-            if (!lock.key.isEmpty() || !((LockPermissionHolder) lock).getLockPermission().isEmpty()) {
+            if (!lock.key.isEmpty() || !((LockPermissionHolder)(Object) lock).getLockPermission().isEmpty()) {
                 return null;
             }
         }

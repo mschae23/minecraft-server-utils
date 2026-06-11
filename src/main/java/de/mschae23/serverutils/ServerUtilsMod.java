@@ -95,7 +95,7 @@ public class ServerUtilsMod implements ModInitializer {
             }
 
             boolean inPublicChat = Permissions.check(newPlayer, MODID + ".death.printcoords.public", config.inPublicChat());
-            GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getWorld().getRegistryKey(), oldPlayer.getBlockPos()));
+            GlobalPos deathPos = newPlayer.getLastDeathPos().orElseGet(() -> GlobalPos.create(oldPlayer.getEntityWorld().getRegistryKey(), oldPlayer.getBlockPos()));
 
             MutableText text = Text.empty().append(oldPlayer.getDisplayName().copy()).append(Text.literal(" died at "))
                 .append(ModUtils.getCoordinateText(deathPos.pos()));
@@ -106,14 +106,14 @@ public class ServerUtilsMod implements ModInitializer {
 
             if (inPublicChat) {
                 // If in_public_chat is true, send message to everyone
-                newPlayer.getWorld().getServer().getPlayerManager().broadcast(text, false);
+                newPlayer.getEntityWorld().getServer().getPlayerManager().broadcast(text, false);
             }
 
             // Otherwise, send it to the player directly.
             // Because COPY_FROM is called in a state where neither the old nor new player are in the
             // player manager's "players" list, the message needs to be manually sent to the player that died
             // even if in_public_chat is true.
-            newPlayer.sendMessage(text, false);
+            newPlayer.sendMessage(text);
         });
 
         // Command registration

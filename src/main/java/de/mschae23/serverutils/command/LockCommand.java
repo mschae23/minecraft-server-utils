@@ -100,7 +100,7 @@ public final class LockCommand {
 
                 ContainerLock lock = locked.lock;
                 locked.lock = new ContainerLock(predicate);
-                ((LockPermissionHolder) locked.lock).setLockPermission(((LockPermissionHolder) lock).getLockPermission());
+                ((LockPermissionHolder)(Object) locked.lock).setLockPermission(((LockPermissionHolder)(Object) lock).getLockPermission());
                 locked.markDirty();
 
                 context.getSource().sendFeedback(() -> Text.empty().append(Text.literal("Locked container at "))
@@ -124,7 +124,7 @@ public final class LockCommand {
 
             if (entity instanceof LockableContainerBlockEntity locked) {
                 ContainerLock lock = new ContainerLock(locked.lock.predicate());
-                ((LockPermissionHolder) lock).setLockPermission(permission);
+                ((LockPermissionHolder)(Object) lock).setLockPermission(permission);
                 locked.lock = lock;
                 locked.markDirty();
 

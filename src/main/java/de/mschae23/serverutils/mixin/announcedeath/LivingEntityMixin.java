@@ -40,7 +40,7 @@ public abstract class LivingEntityMixin extends Entity {
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V", remap = false))
     private void redirectLogNamedEntityDeath(Logger logger, String logText, Object entityObject, Object deathMessage, DamageSource source) {
         LivingEntity entity = (LivingEntity) entityObject;
-        World world = entity.getWorld();
+        World world = entity.getEntityWorld();
 
         if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || !(world instanceof ServerWorld serverWorld)) {
             logger.info(logText, entityObject, deathMessage);

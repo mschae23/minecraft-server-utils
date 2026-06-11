@@ -20,13 +20,19 @@
 package de.mschae23.serverutils.mixin.lock;
 
 import java.util.Optional;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
+import net.minecraft.world.World;
 import com.mojang.serialization.Codec;
+import de.mschae23.serverutils.ModUtils;
 import de.mschae23.serverutils.ServerUtilsMod;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.holder.LockPermissionHolder;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +40,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -84,6 +91,21 @@ public class ContainerLockMixin implements LockPermissionHolder {
         if (!this.serverutils_permission.isEmpty()) {
             view.putString(config.dataKey(), this.serverutils_permission);
         }
+    }
+
+    @Redirect(method = "checkUnlocked(Lnet/minecraft/entity/player/PlayerEntity;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/ContainerLock;canOpen(Lnet/minecraft/item/ItemStack;)Z"))
+    private boolean redirectCanOpen(ContainerLock lock, ItemStack stack, PlayerEntity player) {
+        ContainerLockConfig config = ServerUtilsMod.getConfig().lock();
+
+        World world = player.getEntityWorld();
+        MinecraftServer server = world.getServer();
+
+        if (!config.enabled() || this.getLockPermission().isEmpty() || world.isClient() || server == null) {
+            return lock.canOpen(stack);
+        }
+
+        String permission = ModUtils.getLockPermission(config, this);
+        return Permissions.check(player, permission) && lock.canOpen(stack);
     }
 
     @Unique

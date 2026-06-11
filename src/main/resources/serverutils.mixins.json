@@ -21,7 +21,6 @@
     "lock.EntityExplosionBehaviorMixin",
     "lock.ExplosionBehaviorMixin",
     "lock.HopperBlockEntityMixin",
-    "lock.LockableContainerBlockEntityMixin"
   ],
   "client": [
   ],

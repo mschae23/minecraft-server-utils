@@ -24,6 +24,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.event.GameEvent;
 import de.mschae23.serverutils.ServerUtilsMod;
 import de.mschae23.serverutils.config.ItemFrameConfig;
@@ -35,7 +36,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ItemFrameEntity.class)
 public class ItemFrameEntityMixin {
     @Inject(method = "interact", at = @At(value = "INVOKE", target = "net/minecraft/entity/decoration/ItemFrameEntity.playSound(Lnet/minecraft/sound/SoundEvent;FF)V", ordinal = 0), cancellable = true)
-    private void onInteract(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+    private void onInteract(PlayerEntity player, Hand hand, Vec3d location, CallbackInfoReturnable<ActionResult> cir) {
         ItemFrameConfig config = ServerUtilsMod.getConfig().misc().itemFrame();
 
         if (!config.enabled()) {
@@ -46,7 +47,7 @@ public class ItemFrameEntityMixin {
         ItemStack playerHandStack = player.getStackInHand(hand);
         boolean playerHoldsItem = !playerHandStack.isEmpty();
 
-        if (playerHoldsItem && playerHandStack.isOf(config.invisibilityItem())) {
+        if (playerHoldsItem && playerHandStack.is(config.invisibilityItem())) {
             ItemFrameEntity self = (ItemFrameEntity) (Object) this;
 
             self.setInvisible(!self.isInvisible());

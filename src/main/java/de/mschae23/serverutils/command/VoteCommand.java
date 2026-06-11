@@ -53,7 +53,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 public final class VoteCommand {
@@ -426,7 +426,7 @@ public final class VoteCommand {
             throw MODIFY_STARTED_EXCEPTION.create(vote.getFormattedName());
         } else if (voteOption.isPresent()) {
             Vote vote = voteOption.get();
-            vote.setDisplayName(ModUtils.createNodeParser(source.getPlayer()).parseText(displayName, PlaceholderContext.of(source).asParserContext()));
+            vote.setDisplayName(ModUtils.createNodeParser(source.getPlayer()).parseComponent(displayName, ServerPlaceholderContext.of(source).asParserContext()));
 
             source.sendFeedback(() -> Text.empty()
                 .append("Modified display name of vote ").append(vote.getFormattedName()).append(Text.literal(".")), true);
@@ -519,7 +519,7 @@ public final class VoteCommand {
             }
 
             VoteOption option = optionOption.get();
-            option.setDisplayName(ModUtils.createNodeParser(source.getPlayer()).parseText(displayName, PlaceholderContext.of(source).asParserContext()));
+            option.setDisplayName(ModUtils.createNodeParser(source.getPlayer()).parseComponent(displayName, ServerPlaceholderContext.of(source).asParserContext()));
 
             source.sendFeedback(() -> Text.empty()
                 .append("Modified display name of option ").append(option.getFormattedName())

@@ -19,8 +19,9 @@
 
 package de.mschae23.serverutils.state;
 
-import net.minecraft.datafixer.DataFixTypes;
+import net.minecraft.datafixer.DataFixType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.PersistentStateType;
@@ -29,7 +30,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import de.mschae23.serverutils.ServerUtilsMod;
 
 public class VotePersistentState extends PersistentState {
-    public static final String ID = ServerUtilsMod.MODID + "_vote";
+    public static final Identifier ID = ServerUtilsMod.id("vote");
 
     public static final Codec<VotePersistentState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         VoteStorage.CODEC.fieldOf("vote_storage").forGetter(VotePersistentState::getStorage)
@@ -56,6 +57,6 @@ public class VotePersistentState extends PersistentState {
 
     public static VotePersistentState get(MinecraftServer server) {
         PersistentStateManager stateManager = server.getOverworld().getPersistentStateManager();
-        return stateManager.getOrCreate(new PersistentStateType<>(ID, VotePersistentState::new, CODEC, DataFixTypes.LEVEL));
+        return stateManager.getOrCreate(new PersistentStateType<>(ID, VotePersistentState::new, CODEC, DataFixType.LEVEL));
     }
 }

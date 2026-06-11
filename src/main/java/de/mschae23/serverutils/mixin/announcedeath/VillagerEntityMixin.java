@@ -41,9 +41,9 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V", remap = false))
     private void redirectLogVillagerDeath(Logger logger, String logText, Object entityObject, Object deathMessage) {
         VillagerEntity entity = (VillagerEntity) entityObject;
-        World world = entity.getWorld();
+        World world = entity.getEntityWorld();
 
-        if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || entity.getWorld().isClient() || !(world instanceof ServerWorld serverWorld)) {
+        if (!ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || entity.getEntityWorld().isClient() || !(world instanceof ServerWorld serverWorld)) {
             logger.info(logText, entityObject, deathMessage);
             return;
         }

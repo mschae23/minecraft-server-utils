@@ -42,7 +42,7 @@ public class PlayerEntityMixin {
 
     @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
     private void onGetDisplayname(CallbackInfoReturnable<Text> cir) {
-        if (!ServerUtilsMod.getConfig().chat().enabled() || ((PlayerEntity) (Object) this).getWorld().isClient) {
+        if (!ServerUtilsMod.getConfig().chat().enabled() || ((PlayerEntity) (Object) this).getEntityWorld().isClient()) {
             return;
         }
 

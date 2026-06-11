@@ -85,7 +85,7 @@ public final class UnlockCommand {
                 }
 
                 if (!permission) {
-                    ((LockPermissionHolder) lock).setLockPermission(((LockPermissionHolder) locked.lock).getLockPermission());
+                    ((LockPermissionHolder)(Object) lock).setLockPermission(((LockPermissionHolder)(Object) locked.lock).getLockPermission());
                 }
 
                 locked.lock = lock;

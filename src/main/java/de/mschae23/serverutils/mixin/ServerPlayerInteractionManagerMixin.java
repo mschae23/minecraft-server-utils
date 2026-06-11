@@ -100,7 +100,7 @@ public class ServerPlayerInteractionManagerMixin {
 
                 if (!hasPermission) {
                     if (entity instanceof PlayerEntity player) {
-                        player.sendMessage(Text.translatable("container.isLocked", lockedBlockEntity.getDisplayName()), true);
+                        player.sendOverlayMessage(Text.translatable("container.isLocked", lockedBlockEntity.getDisplayName()));
                     }
 
                     entity.playSound(SoundEvents.BLOCK_CHEST_LOCKED, 1.0F, 1.0F);

@@ -39,8 +39,8 @@ public class PlayerTeamStorage {
     }
 
     private Team createTeam(ServerPlayerEntity player, Formatting formatting) {
-        Team team = new Team(player.getWorld().getScoreboard(), ServerUtilsMod.MODID + "_player_" + player.getGameProfile().getName());
-        team.getPlayerList().add(player.getGameProfile().getName());
+        Team team = new Team(player.getEntityWorld().getScoreboard(), ServerUtilsMod.MODID + "_player_" + player.getGameProfile().name());
+        team.getPlayerList().add(player.getGameProfile().name());
         team.setColor(formatting);
         return team;
     }
@@ -49,17 +49,17 @@ public class PlayerTeamStorage {
         Formatting formatting = ModUtils.getUsernameFormatting(player);
         Team team = this.createTeam(player, formatting);
         Entry entry = new Entry(team, formatting);
-        this.entries.put(player.getGameProfile().getName(), entry);
+        this.entries.put(player.getGameProfile().name(), entry);
 
-        for (ServerPlayerEntity other : player.getWorld().getPlayers()) {
-            Entry otherEntry = this.entries.get(other.getGameProfile().getName());
+        for (ServerPlayerEntity other : player.getEntityWorld().getPlayers()) {
+            Entry otherEntry = this.entries.get(other.getGameProfile().name());
 
             if (otherEntry != null) {
                 player.networkHandler.sendPacket(TeamS2CPacket.updateTeam(otherEntry.team, true));
             }
         }
 
-        for (ServerPlayerEntity other : player.getWorld().getPlayers()) {
+        for (ServerPlayerEntity other : player.getEntityWorld().getPlayers()) {
             if (other == player) {
                 continue;
             }
@@ -69,12 +69,12 @@ public class PlayerTeamStorage {
     }
 
     public void updateFormatting(ServerPlayerEntity player, Formatting formatting) {
-        Entry entry = this.entries.get(player.getGameProfile().getName());
+        Entry entry = this.entries.get(player.getGameProfile().name());
 
         if (entry == null) {
             Team team = this.createTeam(player, formatting);
             entry = new Entry(team, formatting);
-            this.entries.put(player.getGameProfile().getName(), entry);
+            this.entries.put(player.getGameProfile().name(), entry);
         } else if (entry.formatting == formatting) {
             return;
         } else {
@@ -82,19 +82,19 @@ public class PlayerTeamStorage {
             entry.team.setColor(formatting);
         }
 
-        for (ServerPlayerEntity other : player.getWorld().getPlayers()) {
+        for (ServerPlayerEntity other : player.getEntityWorld().getPlayers()) {
             other.networkHandler.sendPacket(TeamS2CPacket.updateTeam(entry.team, false));
         }
     }
 
     public void onPlayerDisconnect(ServerPlayerEntity player) {
-        Entry entry = this.entries.get(player.getGameProfile().getName());
+        Entry entry = this.entries.get(player.getGameProfile().name());
 
         if (entry == null) {
             return;
         }
 
-        player.getWorld().getServer().getPlayerManager().sendToAll(TeamS2CPacket.updateRemovedTeam(entry.team));
+        player.getEntityWorld().getServer().getPlayerManager().sendToAll(TeamS2CPacket.updateRemovedTeam(entry.team));
     }
 
     public static class Entry {

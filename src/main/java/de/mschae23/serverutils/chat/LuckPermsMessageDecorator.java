@@ -33,7 +33,7 @@ import net.minecraft.util.Formatting;
 import com.mojang.authlib.GameProfile;
 import de.mschae23.serverutils.ModUtils;
 import eu.pb4.placeholders.api.ParserContext;
-import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.NonTransformableNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.node.TranslatedNode;
@@ -52,14 +52,14 @@ public final class LuckPermsMessageDecorator {
     }
 
     public static CompletableFuture<Text> processFromDiscord(MinecraftServer server, @NotNull UUID senderUuid, String senderName, Text message, MessageType.Parameters params) {
-        return ModUtils.getLuckPerms().getUserManager().loadUser(senderUuid).thenComposeAsync(user -> process(server, user, null, Text.literal(senderName), PlaceholderContext.of(new GameProfile(senderUuid, user.getUsername()), server), message, params, true), server);
+        return ModUtils.getLuckPerms().getUserManager().loadUser(senderUuid).thenComposeAsync(user -> process(server, user, null, Text.literal(senderName), ServerPlaceholderContext.of(new GameProfile(senderUuid, user.getUsername()), server), message, params, true), server);
     }
 
     public static CompletableFuture<Text> process(@NotNull ServerPlayerEntity sender, Text message, MessageType.Parameters params) {
-        return process(sender.getWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getDisplayName(), PlaceholderContext.of(sender), message, params, false);
+        return process(sender.getEntityWorld().getServer(), ModUtils.getLuckPerms().getPlayerAdapter(ServerPlayerEntity.class).getUser(sender), sender, sender.getDisplayName(), ServerPlaceholderContext.of(sender), message, params, false);
     }
 
-    private static CompletableFuture<Text> process(MinecraftServer server, @NotNull User user, @Nullable ServerPlayerEntity sender, @NotNull Text senderName, PlaceholderContext placeholderContext, Text message, MessageType.Parameters params, boolean discord) {
+    private static CompletableFuture<Text> process(MinecraftServer server, @NotNull User user, @Nullable ServerPlayerEntity sender, @NotNull Text senderName, ServerPlaceholderContext placeholderContext, Text message, MessageType.Parameters params, boolean discord) {
         StaticMessageType type = getMessageTypeId(server.getRegistryManager(), params);
         QueryOptions previousQueryOptions = user.getQueryOptions();
         MutableContextSet context = previousQueryOptions.context().mutableCopy();
@@ -92,7 +92,7 @@ public final class LuckPermsMessageDecorator {
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static Text process(MinecraftServer server, PlaceholderContext placeholderContext, Text senderName,
+    public static Text process(MinecraftServer server, ServerPlaceholderContext placeholderContext, Text senderName,
                                @NotNull String prefix, @NotNull String suffix, @NotNull Formatting usernameFormatting,
                                Text message,
                                MessageType.Parameters params, Optional<StaticMessageType> typeOption, boolean allowUnsafe) {
@@ -158,7 +158,7 @@ public final class LuckPermsMessageDecorator {
                 new NonTransformableNode(TextNode.of("] ")), parsedSuffix, parsedMessage);
         }
 
-        return resultNode.toText(parserContext);
+        return resultNode.toComponent(parserContext);
     }
 
     private static StaticMessageType getMessageTypeId(DynamicRegistryManager manager, MessageType.Parameters params) {

@@ -24,7 +24,8 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRule;
+import net.minecraft.world.rule.GameRules;
 import net.minecraft.world.World;
 import de.mschae23.serverutils.ServerUtilsMod;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,9 +38,9 @@ public abstract class TameableEntityMixin extends AnimalEntity {
         super(entityType, world);
     }
 
-    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
-    private boolean redirectShouldShowDeathMessages(GameRules instance, GameRules.Key<GameRules.BooleanRule> rule) {
-        return ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || instance.getBoolean(rule);
+    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/rule/GameRules;getValue(Lnet/minecraft/world/rule/GameRule;)Ljava/lang/Object;"))
+    private Object redirectShouldShowDeathMessages(GameRules instance, GameRule<Boolean> rule) {
+        return ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || instance.getValue(rule);
     }
 
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;sendMessage(Lnet/minecraft/text/Text;)V"))
@@ -49,6 +50,6 @@ public abstract class TameableEntityMixin extends AnimalEntity {
             return;
         }
 
-        owner.getWorld().getServer().getPlayerManager().broadcast(message, false);
+        owner.getEntityWorld().getServer().getPlayerManager().broadcast(message, false);
     }
 }

@@ -19,6 +19,8 @@
 
 package de.mschae23.serverutils.mixin;
 
+import net.minecraft.command.permission.LeveledPermissionPredicate;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.network.ClientConnection;
@@ -42,9 +44,11 @@ public class PlayerManagerMixin implements PlayerTeamStorageContainer {
     @Unique
     private final PlayerTeamStorage playerTeamStorage = new PlayerTeamStorage();
 
-    @Redirect(method = "sendCommandTree(Lnet/minecraft/server/network/ServerPlayerEntity;I)V", at = @At(value = "NEW", target = "(Lnet/minecraft/entity/Entity;B)Lnet/minecraft/network/packet/s2c/play/EntityStatusS2CPacket;"))
-    private EntityStatusS2CPacket onCreateSetOpLevelPacket(Entity entity, byte status, ServerPlayerEntity player, int permissionLevel) {
-        if (permissionLevel >= 2 || !Permissions.check(player, ServerUtilsMod.getConfig().misc().enableGamemodeSwitcher().permission(), false)) {
+    @Redirect(method = "sendCommandTree(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/command/permission/LeveledPermissionPredicate;)V", at = @At(value = "NEW", target = "(Lnet/minecraft/entity/Entity;B)Lnet/minecraft/network/packet/s2c/play/EntityStatusS2CPacket;"))
+    private EntityStatusS2CPacket onCreateSetOpLevelPacket(Entity entity, byte status, ServerPlayerEntity player, LeveledPermissionPredicate permissions) {
+        PermissionLevel level = permissions.getLevel();
+        if (level == PermissionLevel.GAMEMASTERS || level == PermissionLevel.ADMINS || level == PermissionLevel.OWNERS
+            || !Permissions.check(player, ServerUtilsMod.getConfig().misc().enableGamemodeSwitcher().permission(), false)) {
             return new EntityStatusS2CPacket(entity, status);
         }
 
