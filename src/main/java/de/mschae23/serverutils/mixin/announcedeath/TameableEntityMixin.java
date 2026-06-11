@@ -32,15 +32,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+
 @Mixin(TameableEntity.class)
 public abstract class TameableEntityMixin extends AnimalEntity {
     protected TameableEntityMixin(EntityType<? extends AnimalEntity> entityType, World world) {
         super(entityType, world);
     }
 
-    @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/rule/GameRules;getValue(Lnet/minecraft/world/rule/GameRule;)Ljava/lang/Object;"))
-    private Object redirectShouldShowDeathMessages(GameRules instance, GameRule<Boolean> rule) {
-        return ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || instance.getValue(rule);
+    @WrapOperation(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/rule/GameRules;getValue(Lnet/minecraft/world/rule/GameRule;)Ljava/lang/Object;"))
+    private Object redirectShouldShowDeathMessages(GameRules instance, GameRule<Boolean> rule, Operation<Boolean> operation) {
+        return ServerUtilsMod.getConfig().misc().broadcastEntityDeath().enabled() || operation.call(instance, rule);
     }
 
     @Redirect(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;sendMessage(Lnet/minecraft/text/Text;)V"))

@@ -207,7 +207,7 @@ public final class ModUtils {
             }, source.getServer()), source.getServer());
     }
 
-    // Container Lock
+    // Container lock
 
     public static boolean canAlwaysOpen(ContainerLock lock) {
         return lock.predicate().items().isEmpty()

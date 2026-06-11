@@ -24,6 +24,8 @@ import de.mschae23.serverutils.config.DeathCoordsConfig;
 import de.mschae23.serverutils.config.EnableGamemodeSwitcherConfig;
 import de.mschae23.serverutils.config.ItemFrameConfig;
 import de.mschae23.serverutils.config.MiscConfig;
+import de.mschae23.serverutils.config.v6.MiscConfigV6;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -37,6 +39,6 @@ public record MiscConfigV4(EnableGamemodeSwitcherConfig enableGamemodeSwitcher, 
     public static final MiscConfigV4 DEFAULT = new MiscConfigV4(EnableGamemodeSwitcherConfig.DEFAULT, ItemFrameConfig.DEFAULT);
 
     public MiscConfig latest() {
-        return new MiscConfig(DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, EnableGamemodeSwitcherConfig.DEFAULT, ItemFrameConfig.DEFAULT);
+        return new MiscConfigV6(DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, this.enableGamemodeSwitcher, this.itemFrame).latest();
     }
 }

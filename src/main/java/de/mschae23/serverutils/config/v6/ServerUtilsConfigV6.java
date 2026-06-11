@@ -17,39 +17,44 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package de.mschae23.serverutils.config;
+package de.mschae23.serverutils.config.v6;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import de.mschae23.config.api.ModConfig;
+import de.mschae23.serverutils.config.ChatConfig;
+import de.mschae23.serverutils.config.ContainerLockConfig;
+import de.mschae23.serverutils.config.ServerUtilsConfigV7;
+import de.mschae23.serverutils.config.VoteConfig;
 import de.mschae23.serverutils.config.command.CommandConfig;
 
+@Deprecated
 public record ServerUtilsConfigV6(CommandConfig command,
                                   ChatConfig chat,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
-                                  MiscConfig misc) implements ModConfig<ServerUtilsConfigV6> {
+                                  MiscConfigV6 misc) implements ModConfig<ServerUtilsConfigV7> {
     public static final MapCodec<ServerUtilsConfigV6> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV6::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV6::chat),
         ContainerLockConfig.CODEC.fieldOf("container_lock").forGetter(ServerUtilsConfigV6::lock),
         VoteConfig.CODEC.fieldOf("vote").forGetter(ServerUtilsConfigV6::vote),
-        MiscConfig.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV6::misc)
+        MiscConfigV6.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV6::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV6::new)));
 
-    public static final ModConfig.Type<ServerUtilsConfigV6, ServerUtilsConfigV6> TYPE = new ModConfig.Type<>(6, TYPE_CODEC);
+    public static final ModConfig.Type<ServerUtilsConfigV7, ServerUtilsConfigV6> TYPE = new ModConfig.Type<>(6, TYPE_CODEC);
 
     public static final ServerUtilsConfigV6 DEFAULT =
-        new ServerUtilsConfigV6(CommandConfig.DEFAULT, ChatConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfig.DEFAULT);
+        new ServerUtilsConfigV6(CommandConfig.DEFAULT, ChatConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfigV6.DEFAULT);
 
     @Override
-    public ModConfig.Type<ServerUtilsConfigV6, ?> type() {
+    public ModConfig.Type<ServerUtilsConfigV7, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV6 latest() {
-        return this;
+    public ServerUtilsConfigV7 latest() {
+        return new ServerUtilsConfigV7(this.command, this.chat, this.lock, this.vote, this.misc.latest());
     }
 
     @Override

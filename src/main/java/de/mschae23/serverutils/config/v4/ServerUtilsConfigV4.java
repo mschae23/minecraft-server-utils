@@ -26,10 +26,11 @@ import de.mschae23.serverutils.config.BroadcastEntityDeathConfig;
 import de.mschae23.serverutils.config.ChatConfig;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.config.DeathCoordsConfig;
-import de.mschae23.serverutils.config.MiscConfig;
-import de.mschae23.serverutils.config.ServerUtilsConfigV6;
+import de.mschae23.serverutils.config.ServerUtilsConfigV7;
 import de.mschae23.serverutils.config.VoteConfig;
 import de.mschae23.serverutils.config.command.CommandConfig;
+import de.mschae23.serverutils.config.v6.MiscConfigV6;
+import de.mschae23.serverutils.config.v6.ServerUtilsConfigV6;
 
 @Deprecated
 @SuppressWarnings("DeprecatedIsStillUsed")
@@ -39,7 +40,7 @@ public record ServerUtilsConfigV4(CommandConfig command,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
-                                  MiscConfigV4 misc) implements ModConfig<ServerUtilsConfigV6> {
+                                  MiscConfigV4 misc) implements ModConfig<ServerUtilsConfigV7> {
     public static final MapCodec<ServerUtilsConfigV4> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV4::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV4::chat),
@@ -50,20 +51,20 @@ public record ServerUtilsConfigV4(CommandConfig command,
         MiscConfigV4.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV4::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV4::new)));
 
-    public static final Type<ServerUtilsConfigV6, ServerUtilsConfigV4> TYPE = new Type<>(4, TYPE_CODEC);
+    public static final Type<ServerUtilsConfigV7, ServerUtilsConfigV4> TYPE = new Type<>(4, TYPE_CODEC);
 
     public static final ServerUtilsConfigV4 DEFAULT =
         new ServerUtilsConfigV4(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfigV4.DEFAULT);
 
     @Override
-    public Type<ServerUtilsConfigV6, ?> type() {
+    public Type<ServerUtilsConfigV7, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV6 latest() {
+    public ServerUtilsConfigV7 latest() {
         return new ServerUtilsConfigV6(this.command, this.chat, this.lock, this.vote,
-            new MiscConfig(this.deathCoords, this.broadcastEntityDeath, this.misc.enableGamemodeSwitcher(), this.misc.itemFrame()));
+            new MiscConfigV6(this.deathCoords, this.broadcastEntityDeath, this.misc.enableGamemodeSwitcher(), this.misc.itemFrame())).latest();
     }
 
     @Override

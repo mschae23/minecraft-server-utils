@@ -19,17 +19,24 @@
 
 package de.mschae23.serverutils.mixin;
 
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.rule.GameRule;
+import net.minecraft.world.rule.GameRules;
 import de.mschae23.serverutils.ModUtils;
 import de.mschae23.serverutils.ServerUtilsMod;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.fabricmc.fabric.api.util.TriState;
 import net.luckperms.api.model.user.User;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
@@ -55,5 +62,30 @@ public class ServerPlayerEntityMixin {
         Formatting usernameFormatting = ModUtils.getUsernameFormatting(colorName);
 
         cir.setReturnValue(usernameFormatting == Formatting.RESET ? name : name.formatted(usernameFormatting));
+    }
+
+    @WrapOperation(method = "copyFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/rule/GameRules;getValue(Lnet/minecraft/world/rule/GameRule;)Ljava/lang/Object;"))
+    private Object shouldCopyInventory(GameRules instance, GameRule<Boolean> rule, Operation<Boolean> operation) {
+        return Permissions.getPermissionValue((PlayerEntity)(Object) this, ServerUtilsMod.getConfig().misc().gameRules().keepInventoryPermission()).orElseGet(() -> operation.call(instance, rule));
+    }
+
+    @WrapOperation(method = "shouldDamagePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;isPvpEnabled()Z"))
+    private boolean shouldAllowPvp(ServerPlayerEntity player, Operation<Boolean> operation, PlayerEntity other) {
+        TriState selfPvp = Permissions.getPermissionValue(player, ServerUtilsMod.getConfig().misc().gameRules().pvpPermission());
+
+        if (selfPvp == TriState.FALSE) {
+            return false;
+        }
+
+        TriState otherPvp = Permissions.getPermissionValue(other, ServerUtilsMod.getConfig().misc().gameRules().pvpPermission());
+
+        if (otherPvp == TriState.FALSE) {
+            return false;
+        }
+        if (selfPvp == TriState.TRUE && otherPvp == TriState.TRUE) {
+            return true;
+        }
+
+        return operation.call(player);
     }
 }

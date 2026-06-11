@@ -26,7 +26,7 @@ import de.mschae23.serverutils.config.BroadcastEntityDeathConfig;
 import de.mschae23.serverutils.config.ChatConfig;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.config.DeathCoordsConfig;
-import de.mschae23.serverutils.config.ServerUtilsConfigV6;
+import de.mschae23.serverutils.config.ServerUtilsConfigV7;
 import de.mschae23.serverutils.config.command.CommandConfig;
 import de.mschae23.serverutils.config.v2.ServerUtilsConfigV2;
 import de.mschae23.serverutils.config.v3.MiscConfigV3;
@@ -37,7 +37,7 @@ public record ServerUtilsConfigV1(CommandConfig command,
                                   ChatConfig chat,
                                   DeathCoordsConfig deathCoords,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
-                                  ContainerLockConfig lock) implements ModConfig<ServerUtilsConfigV6> {
+                                  ContainerLockConfig lock) implements ModConfig<ServerUtilsConfigV7> {
     public static final MapCodec<ServerUtilsConfigV1> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV1::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV1::chat),
@@ -46,18 +46,18 @@ public record ServerUtilsConfigV1(CommandConfig command,
         ContainerLockConfig.CODEC.fieldOf("container_lock").forGetter(ServerUtilsConfigV1::lock)
     ).apply(instance, instance.stable(ServerUtilsConfigV1::new)));
 
-    public static final ModConfig.Type<ServerUtilsConfigV6, ServerUtilsConfigV1> TYPE = new ModConfig.Type<>(1, TYPE_CODEC);
+    public static final ModConfig.Type<ServerUtilsConfigV7, ServerUtilsConfigV1> TYPE = new ModConfig.Type<>(1, TYPE_CODEC);
 
     public static final ServerUtilsConfigV1 DEFAULT =
         new ServerUtilsConfigV1(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT);
 
     @Override
-    public ModConfig.Type<ServerUtilsConfigV6, ?> type() {
+    public ModConfig.Type<ServerUtilsConfigV7, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV6 latest() {
+    public ServerUtilsConfigV7 latest() {
         return new ServerUtilsConfigV2(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, MiscConfigV3.DEFAULT).latest();
     }
 

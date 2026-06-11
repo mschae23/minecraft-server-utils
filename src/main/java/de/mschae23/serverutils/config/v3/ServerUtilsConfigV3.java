@@ -26,7 +26,7 @@ import de.mschae23.serverutils.config.BroadcastEntityDeathConfig;
 import de.mschae23.serverutils.config.ChatConfig;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.config.DeathCoordsConfig;
-import de.mschae23.serverutils.config.ServerUtilsConfigV6;
+import de.mschae23.serverutils.config.ServerUtilsConfigV7;
 import de.mschae23.serverutils.config.VoteConfig;
 import de.mschae23.serverutils.config.command.CommandConfig;
 import de.mschae23.serverutils.config.v4.ServerUtilsConfigV4;
@@ -39,7 +39,7 @@ public record ServerUtilsConfigV3(CommandConfig command,
                                   BroadcastEntityDeathConfig broadcastEntityDeath,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
-                                  MiscConfigV3 misc) implements ModConfig<ServerUtilsConfigV6> {
+                                  MiscConfigV3 misc) implements ModConfig<ServerUtilsConfigV7> {
     public static final MapCodec<ServerUtilsConfigV3> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV3::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV3::chat),
@@ -50,18 +50,18 @@ public record ServerUtilsConfigV3(CommandConfig command,
         MiscConfigV3.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV3::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV3::new)));
 
-    public static final Type<ServerUtilsConfigV6, ServerUtilsConfigV3> TYPE = new Type<>(3, TYPE_CODEC);
+    public static final Type<ServerUtilsConfigV7, ServerUtilsConfigV3> TYPE = new Type<>(3, TYPE_CODEC);
 
     public static final ServerUtilsConfigV3 DEFAULT =
         new ServerUtilsConfigV3(CommandConfig.DEFAULT, ChatConfig.DEFAULT, DeathCoordsConfig.DEFAULT, BroadcastEntityDeathConfig.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfigV3.DEFAULT);
 
     @Override
-    public Type<ServerUtilsConfigV6, ?> type() {
+    public Type<ServerUtilsConfigV7, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV6 latest() {
+    public ServerUtilsConfigV7 latest() {
         return new ServerUtilsConfigV4(this.command, this.chat, this.deathCoords, this.broadcastEntityDeath, this.lock, this.vote, this.misc.latestV4()).latest();
     }
 

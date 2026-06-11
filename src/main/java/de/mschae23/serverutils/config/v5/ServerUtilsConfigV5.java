@@ -25,7 +25,7 @@ import de.mschae23.config.api.ModConfig;
 import de.mschae23.serverutils.config.ChatConfig;
 import de.mschae23.serverutils.config.ContainerLockConfig;
 import de.mschae23.serverutils.config.MiscConfig;
-import de.mschae23.serverutils.config.ServerUtilsConfigV6;
+import de.mschae23.serverutils.config.ServerUtilsConfigV7;
 import de.mschae23.serverutils.config.VoteConfig;
 import de.mschae23.serverutils.config.command.CommandConfig;
 
@@ -36,7 +36,7 @@ public record ServerUtilsConfigV5(CommandConfig command,
                                   RegionConfigV5 region,
                                   ContainerLockConfig lock,
                                   VoteConfig vote,
-                                  MiscConfig misc) implements ModConfig<ServerUtilsConfigV6> {
+                                  MiscConfig misc) implements ModConfig<ServerUtilsConfigV7> {
     public static final MapCodec<ServerUtilsConfigV5> TYPE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         CommandConfig.CODEC.fieldOf("command").forGetter(ServerUtilsConfigV5::command),
         ChatConfig.CODEC.fieldOf("chat").forGetter(ServerUtilsConfigV5::chat),
@@ -46,19 +46,19 @@ public record ServerUtilsConfigV5(CommandConfig command,
         MiscConfig.CODEC.fieldOf("misc").forGetter(ServerUtilsConfigV5::misc)
     ).apply(instance, instance.stable(ServerUtilsConfigV5::new)));
 
-    public static final Type<ServerUtilsConfigV6, ServerUtilsConfigV5> TYPE = new Type<>(5, TYPE_CODEC);
+    public static final Type<ServerUtilsConfigV7, ServerUtilsConfigV5> TYPE = new Type<>(5, TYPE_CODEC);
 
     public static final ServerUtilsConfigV5 DEFAULT =
         new ServerUtilsConfigV5(CommandConfig.DEFAULT, ChatConfig.DEFAULT, RegionConfigV5.DEFAULT, ContainerLockConfig.DEFAULT, VoteConfig.DEFAULT, MiscConfig.DEFAULT);
 
     @Override
-    public Type<ServerUtilsConfigV6, ?> type() {
+    public Type<ServerUtilsConfigV7, ?> type() {
         return TYPE;
     }
 
     @Override
-    public ServerUtilsConfigV6 latest() {
-        return new ServerUtilsConfigV6(this.command, this.chat, this.lock, this.vote, this.misc);
+    public ServerUtilsConfigV7 latest() {
+        return new ServerUtilsConfigV7(this.command, this.chat, this.lock, this.vote, this.misc).latest();
     }
 
     @Override

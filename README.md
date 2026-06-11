@@ -15,6 +15,8 @@ Requires LuckPerms.
 - `serverutils.death.printcoords.public`: Overrides the `death_coords.in_public_chat` config property
 (if this is enabled, the player's coordinates will be sent to all players instead of just the one who died).
 - `serverutils.key...`: Default prefix for permissions to open containers that are locked.
+- `serverutils.rule.keep_inventory`: Overrides the `keep_inventory` game rule.
+- `serverutils.rule.pvp`: Overrides the `pvp` game rule. Both players need PVP enabled for them to be allowed to fight each other.
 
 ## License
 Server utils

@@ -45,12 +45,7 @@ import de.mschae23.serverutils.command.PosCommand;
 import de.mschae23.serverutils.command.ServerUtilsCommand;
 import de.mschae23.serverutils.command.UnlockCommand;
 import de.mschae23.serverutils.command.VoteCommand;
-import de.mschae23.serverutils.config.ServerUtilsConfigV6;
-import de.mschae23.serverutils.config.v1.ServerUtilsConfigV1;
-import de.mschae23.serverutils.config.v2.ServerUtilsConfigV2;
-import de.mschae23.serverutils.config.v3.ServerUtilsConfigV3;
-import de.mschae23.serverutils.config.v4.ServerUtilsConfigV4;
-import de.mschae23.serverutils.config.v5.ServerUtilsConfigV5;
+import de.mschae23.serverutils.config.ServerUtilsConfigV7;
 import de.mschae23.serverutils.registry.ServerUtilsRegistries;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -66,14 +61,14 @@ import org.slf4j.LoggerFactory;
 
 public class ServerUtilsMod implements ModInitializer {
     public static final String MODID = "serverutils";
-    @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger("Server utils");
 
-    private static final ServerUtilsConfigV6 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV6.DEFAULT;
+    private static final ServerUtilsConfigV7 LATEST_CONFIG_DEFAULT = ServerUtilsConfigV7.DEFAULT;
     private static final int LATEST_CONFIG_VERSION = LATEST_CONFIG_DEFAULT.version();
-    private static final Codec<ModConfig<ServerUtilsConfigV6>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION, ServerUtilsMod::getConfigType);
+    private static final Codec<ModConfig<ServerUtilsConfigV7>> CONFIG_CODEC = ModConfig.createCodec(LATEST_CONFIG_VERSION,
+        version -> ModConfig.getType(ServerUtilsConfigV7.VERSIONS, version));
 
-    private static ServerUtilsConfigV6 CONFIG = LATEST_CONFIG_DEFAULT;
+    private static ServerUtilsConfigV7 CONFIG = LATEST_CONFIG_DEFAULT;
 
     public static final RegistryKey<MessageType> UNDECORATED_CHAT = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, id("undecorated_chat"));
 
@@ -140,10 +135,15 @@ public class ServerUtilsMod implements ModInitializer {
             String[] permissions = new String[] {
                 ".death.printcoords.enabled",
                 ".death.printcoords.public",
+                ".chat.unsafe.allow",
             };
 
             Stream.concat(commandPermissions, Arrays.stream(permissions))
                 .forEach(permission -> Permissions.check(source, MODID + permission));
+
+            // without modid prefix
+            Permissions.check(source, CONFIG.misc().gameRules().keepInventoryPermission());
+            Permissions.check(source, CONFIG.misc().gameRules().pvpPermission());
 
             ModUtils.getLuckPerms().getContextManager().registerCalculator(new ContextCalculator<ServerPlayerEntity>() {
                 @Override
@@ -185,19 +185,7 @@ public class ServerUtilsMod implements ModInitializer {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private static ModConfig.Type<ServerUtilsConfigV6, ?> getConfigType(int version) {
-        return new ModConfig.Type<>(version, switch (version) {
-            case 1 -> ServerUtilsConfigV1.TYPE_CODEC;
-            case 2 -> ServerUtilsConfigV2.TYPE_CODEC;
-            case 3 -> ServerUtilsConfigV3.TYPE_CODEC;
-            case 4 -> ServerUtilsConfigV4.TYPE_CODEC;
-            case 5 -> ServerUtilsConfigV5.TYPE_CODEC;
-            default -> ServerUtilsConfigV6.TYPE_CODEC;
-        });
-    }
-
-    public static ServerUtilsConfigV6 getConfig() {
+    public static ServerUtilsConfigV7 getConfig() {
         return CONFIG;
     }
 
