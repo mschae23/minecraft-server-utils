@@ -68,24 +68,4 @@ public class ServerPlayerEntityMixin {
     private Object shouldCopyInventory(GameRules instance, GameRule<Boolean> rule, Operation<Boolean> operation) {
         return Permissions.getPermissionValue((PlayerEntity)(Object) this, ServerUtilsMod.getConfig().misc().gameRules().keepInventoryPermission()).orElseGet(() -> operation.call(instance, rule));
     }
-
-    @WrapOperation(method = "shouldDamagePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;isPvpEnabled()Z"))
-    private boolean shouldAllowPvp(ServerPlayerEntity player, Operation<Boolean> operation, PlayerEntity other) {
-        TriState selfPvp = Permissions.getPermissionValue(player, ServerUtilsMod.getConfig().misc().gameRules().pvpPermission());
-
-        if (selfPvp == TriState.FALSE) {
-            return false;
-        }
-
-        TriState otherPvp = Permissions.getPermissionValue(other, ServerUtilsMod.getConfig().misc().gameRules().pvpPermission());
-
-        if (otherPvp == TriState.FALSE) {
-            return false;
-        }
-        if (selfPvp == TriState.TRUE && otherPvp == TriState.TRUE) {
-            return true;
-        }
-
-        return operation.call(player);
-    }
 }

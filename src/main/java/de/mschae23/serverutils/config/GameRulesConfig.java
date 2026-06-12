@@ -22,7 +22,7 @@ package de.mschae23.serverutils.config;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-public record GameRulesConfig(String keepInventoryPermission, String pvpPermission) {
+public record GameRulesConfig(String keepInventoryPermission, /** currently unused. */ String pvpPermission) {
     public static final Codec<GameRulesConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.STRING.fieldOf("keep_inventory_permission").forGetter(GameRulesConfig::keepInventoryPermission),
         Codec.STRING.fieldOf("pvp_permission").forGetter(GameRulesConfig::pvpPermission)
